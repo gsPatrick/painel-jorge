@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://localhost:3000/api', // Pointing to our Node.js API
+    baseURL: 'https://geral-apijorge.r954jc.easypanel.host/api', // Production API
     headers: {
         'Content-Type': 'application/json',
     },
