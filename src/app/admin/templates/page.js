@@ -1,15 +1,15 @@
-"use client";
-
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Button from '@/components/ui/Button/Button';
 import Card from '@/components/ui/Card/Card';
 import templateService from '@/services/template.service';
-import { Plus, Image as ImageIcon, Trash2, HelpCircle, Download, Edit } from 'lucide-react';
+import { Plus, Image as ImageIcon, Trash2, HelpCircle, Download, Edit, Play } from 'lucide-react';
+import TemplateTestModal from './TemplateTestModal';
 
 export default function TemplatesPage() {
     const [templates, setTemplates] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [testingTemplate, setTestingTemplate] = useState(null);
 
     useEffect(() => {
         fetchTemplates();
@@ -86,15 +86,27 @@ export default function TemplatesPage() {
             ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
                     {templates.map((template) => (
-                        <TemplateCard key={template.id} template={template} onDelete={handleDelete} />
+                        <TemplateCard
+                            key={template.id}
+                            template={template}
+                            onDelete={handleDelete}
+                            onTest={setTestingTemplate}
+                        />
                     ))}
                 </div>
+            )}
+
+            {testingTemplate && (
+                <TemplateTestModal
+                    template={testingTemplate}
+                    onClose={() => setTestingTemplate(null)}
+                />
             )}
         </div>
     );
 }
 
-function TemplateCard({ template, onDelete }) {
+function TemplateCard({ template, onDelete, onTest }) {
     const [imgError, setImgError] = useState(false);
 
     return (
@@ -122,6 +134,9 @@ function TemplateCard({ template, onDelete }) {
                     </p>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <Button variant="outline" size="sm" style={{ padding: '0.5rem' }} title="Testar" onClick={() => onTest(template)}>
+                        <Play size={16} />
+                    </Button>
                     <Link href={`/admin/templates/${template.id}`}>
                         <Button variant="ghost" size="sm" style={{ padding: '0.5rem' }} title="Editar">
                             <Edit size={16} />
