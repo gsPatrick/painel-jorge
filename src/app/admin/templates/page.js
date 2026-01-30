@@ -118,7 +118,7 @@ function TemplateCard({ template, onDelete, onTest }) {
                     <img
                         src={`https://geral-apijorge.r954jc.easypanel.host/uploads/${template.fileName}`}
                         alt={template.name}
-                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                        style={{ width: '100%', height: '100%', objectFit: 'fill' }}
                         onError={() => setImgError(true)}
                     />
                 ) : (

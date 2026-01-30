@@ -65,7 +65,8 @@ export default function TemplateTestModal({ template, onClose }) {
                         style={{
                             display: 'block',
                             width: '100%',
-                            height: 'auto',
+                            height: '100%', // Fixed 100% height to fill A4 container
+                            objectFit: 'fill', // Force stretch to cover the A4 box
                             pointerEvents: 'none'
                         }}
                     />
