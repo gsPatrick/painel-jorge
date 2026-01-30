@@ -107,7 +107,8 @@ export default function UsersPage() {
                                             <User size={16} />
                                         </div>
                                         <div>
-                                            <span style={{ fontWeight: 500, display: 'block' }}>{user.email}</span>
+                                            <span style={{ fontWeight: 600, display: 'block' }}>{user.name || 'Sem Nome'}</span>
+                                            <span style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>{user.email}</span>
                                         </div>
                                     </div>
                                 </td>

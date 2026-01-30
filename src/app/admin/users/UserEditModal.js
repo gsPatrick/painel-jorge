@@ -11,7 +11,7 @@ import { X, Save } from 'lucide-react';
 export default function UserEditModal({ user, onClose, onSave }) {
     const [templates, setTemplates] = useState([]);
     const [selectedTemplates, setSelectedTemplates] = useState([]);
-    const [formData, setFormData] = useState({ email: user.email, password: '' });
+    const [formData, setFormData] = useState({ name: user.name || '', email: user.email, password: '' });
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -43,7 +43,7 @@ export default function UserEditModal({ user, onClose, onSave }) {
         setLoading(true);
         try {
             // Update User Info
-            const updateData = { email: formData.email };
+            const updateData = { name: formData.name, email: formData.email };
             if (formData.password) updateData.password = formData.password;
 
             await userService.updateUser(user.id, updateData);
@@ -74,6 +74,12 @@ export default function UserEditModal({ user, onClose, onSave }) {
                     {/* Basic Info */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         <h4 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--muted-foreground)' }}>Dados de Acesso</h4>
+                        <Input
+                            label="Nome Completo"
+                            value={formData.name}
+                            onChange={e => setFormData({ ...formData, name: e.target.value })}
+                            required
+                        />
                         <Input
                             label="Email"
                             type="email"

@@ -8,7 +8,7 @@ import userService from '@/services/user.service';
 import { X, Save } from 'lucide-react';
 
 export default function UserCreateModal({ onClose, onSave }) {
-    const [newUser, setNewUser] = useState({ email: '', password: '' });
+    const [newUser, setNewUser] = useState({ name: '', email: '', password: '' });
     const [loading, setLoading] = useState(false);
 
     const handleCreate = async (e) => {
@@ -37,6 +37,13 @@ export default function UserCreateModal({ onClose, onSave }) {
                 </div>
 
                 <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    <Input
+                        label="Nome Completo"
+                        placeholder="Ex: João Silva"
+                        value={newUser.name}
+                        onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+                        required
+                    />
                     <Input
                         label="Email"
                         type="email"
