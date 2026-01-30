@@ -48,51 +48,61 @@ export default function TemplateTestModal({ template, onClose }) {
                 </p>
 
                 {/* Preview Area - Aspect Ratio A4-ish or flexible */}
+                {/* Preview Area */}
                 <div style={{
                     width: '100%',
-                    aspectRatio: '210/297', // A4 Ratio
-                    backgroundColor: '#eee',
-                    borderRadius: '8px',
-                    overflow: 'hidden',
                     position: 'relative',
                     marginBottom: '1.5rem',
-                    border: '1px solid #ccc'
+                    border: '1px solid #ccc',
+                    backgroundColor: '#eee',
+                    overflow: 'hidden'
                 }}>
-                    {/* User Photo Layer (Bottom) */}
-                    {testImage && (
-                        <img
-                            src={testImage}
-                            alt="Teste"
-                            style={{
-                                position: 'absolute',
-                                top: 0, left: 0,
-                                width: '100%', height: '100%',
-                                objectFit: 'cover',
-                                transform: `scale(${zoom})`,
-                                transition: 'transform 0.1s'
-                            }}
-                        />
-                    )}
-
-                    {/* Template Layer (Top) */}
+                    {/* Template Layer (Background) */}
                     <img
                         src={`https://geral-apijorge.r954jc.easypanel.host/uploads/${template.fileName}`}
                         alt="Template"
                         style={{
-                            position: 'absolute',
-                            top: 0, left: 0,
-                            width: '100%', height: '100%',
-                            objectFit: 'contain',
-                            pointerEvents: 'none', // Allow clicks to pass through if we added drag later
-                            zIndex: 10
+                            display: 'block',
+                            width: '100%',
+                            height: 'auto',
+                            pointerEvents: 'none'
                         }}
                     />
+
+                    {/* User Photo Layer (Overlay) */}
+                    {testImage && config && (
+                        <div
+                            style={{
+                                position: 'absolute',
+                                left: config.x,
+                                top: config.y,
+                                width: config.width,
+                                height: config.height,
+                                overflow: 'hidden',
+                                zIndex: 10, // On top of template
+                                backgroundColor: 'white' // Ensure background for photo
+                            }}
+                        >
+                            <img
+                                src={testImage}
+                                alt="Teste"
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover',
+                                    transform: `scale(${zoom})`,
+                                    transition: 'transform 0.1s'
+                                }}
+                            />
+                        </div>
+                    )}
 
                     {!testImage && (
                         <div style={{
                             position: 'absolute', inset: 0,
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: '#999', pointerEvents: 'none'
+                            color: '#999', pointerEvents: 'none',
+                            zIndex: 20
                         }}>
                             Nenhuma foto selecionada
                         </div>
