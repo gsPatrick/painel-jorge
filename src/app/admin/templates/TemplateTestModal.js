@@ -51,6 +51,7 @@ export default function TemplateTestModal({ template, onClose }) {
                 {/* Preview Area */}
                 <div style={{
                     width: '100%',
+                    aspectRatio: '210/297', // A4 Ratio
                     position: 'relative',
                     marginBottom: '1.5rem',
                     border: '1px solid #ccc',

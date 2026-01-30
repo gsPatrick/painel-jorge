@@ -7,192 +7,153 @@ import { ImagePlus } from 'lucide-react';
 export default function VisualEditor({ imageSrc, initialConfig, onChange }) {
     const containerRef = useRef(null);
     const [rect, setRect] = useState(initialConfig || { x: 50, y: 50, width: 200, height: 200 });
-    const [isDraggingState, setIsDraggingState] = useState(false); // Only for UI feedback if needed
+    const [isDraggingState, setIsDraggingState] = useState(false);
 
-    // Refs for drag logic to avoid re-renders interrupting events
     const dragStartRef = useRef({ x: 0, y: 0 });
     const rectRef = useRef(rect);
     const isDraggingRef = useRef(false);
     const activeHandleRef = useRef(null);
 
-    // Sync ref with prop/state updates
     useEffect(() => {
         rectRef.current = rect;
     }, [rect]);
 
-                <img 
-                    src={imageSrc} 
-                    alt="Template Preview" 
-                    className={styles.image} 
-                    onLoad={(e) => {
-                        // Initialize Rect based on loaded image size
-                        const { width, height } = e.currentTarget.getBoundingClientRect();
-                        
-                        let startRect = { ...initialConfig };
-                        
-                        // If saved as %, convert to px for editor
-                        if (initialConfig.unit === '%') {
-                            startRect = {
-                                x: (initialConfig.x / 100) * width,
-                                y: (initialConfig.y / 100) * height,
-                                width: (initialConfig.width / 100) * width,
-                                height: (initialConfig.height / 100) * height
-                            };
-                        }
-                        // Else assume it was px or default
-                        
-                        setRect(startRect);
-                        rectRef.current = startRect;
-                    }}
-                />
+    useEffect(() => {
+        if (!imageSrc) return;
 
-                <div
-                    className={styles.overlay}
-                    style={{
-                        left: rect.x,
-                        top: rect.y,
-                        width: rect.width,
-                        height: rect.height,
-                        position: 'absolute',
-                        cursor: isDraggingState ? 'grabbing' : 'grab'
-                    }}
-                    onMouseDown={(e) => handleMouseDown(e)}
-                    onTouchStart={(e) => handleMouseDown(e)}
-                >
-                    <div
-                        className={`${styles.handle} ${styles.handleSe}`}
-                        onMouseDown={(e) => handleMouseDown(e, 'se')}
-                        onTouchStart={(e) => handleMouseDown(e, 'se')}
-                    />
-                </div>
-            </div >
-        );
-}
+        const handleMouseMove = (e) => {
+            if (!isDraggingRef.current && !activeHandleRef.current) return;
+            e.preventDefault();
 
-// ... (logic for mouse move needs update to emit %) ...
-// Inserting the updated hook logic:
+            const container = containerRef.current;
+            if (!container) return;
+            const { width: containerWidth, height: containerHeight } = container.getBoundingClientRect();
 
-useEffect(() => {
-    if (!imageSrc) return;
+            const clientX = e.clientX || e.touches?.[0]?.clientX;
+            const clientY = e.clientY || e.touches?.[0]?.clientY;
 
-    const handleMouseMove = (e) => {
-        if (!isDraggingRef.current && !activeHandleRef.current) return;
+            const deltaX = clientX - dragStartRef.current.x;
+            const deltaY = clientY - dragStartRef.current.y;
+
+            dragStartRef.current = { x: clientX, y: clientY };
+
+            let newRect = { ...rectRef.current };
+
+            if (isDraggingRef.current) {
+                newRect.x += deltaX;
+                newRect.y += deltaY;
+            } else if (activeHandleRef.current === 'se') {
+                newRect.width += deltaX;
+                newRect.height += deltaY;
+            }
+
+            rectRef.current = newRect;
+            setRect(newRect);
+
+            if (onChange) {
+                // Return percentages
+                onChange({
+                    x: (newRect.x / containerWidth) * 100,
+                    y: (newRect.y / containerHeight) * 100,
+                    width: (newRect.width / containerWidth) * 100,
+                    height: (newRect.height / containerHeight) * 100,
+                    unit: '%'
+                });
+            }
+        };
+
+        const handleMouseUp = () => {
+            if (isDraggingRef.current || activeHandleRef.current) {
+                isDraggingRef.current = false;
+                activeHandleRef.current = null;
+                setIsDraggingState(false);
+            }
+        };
+
+        window.addEventListener('mousemove', handleMouseMove, { passive: false });
+        window.addEventListener('mouseup', handleMouseUp);
+        window.addEventListener('touchmove', handleMouseMove, { passive: false });
+        window.addEventListener('touchend', handleMouseUp);
+
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+            window.removeEventListener('touchmove', handleMouseMove);
+            window.removeEventListener('touchend', handleMouseUp);
+        };
+    }, [imageSrc, onChange]);
+
+    const handleMouseDown = (e, handle = null) => {
         e.preventDefault();
-
-        const container = containerRef.current;
-        if (!container) return;
-        const { width: containerWidth, height: containerHeight } = container.getBoundingClientRect();
+        e.stopPropagation();
 
         const clientX = e.clientX || e.touches?.[0]?.clientX;
         const clientY = e.clientY || e.touches?.[0]?.clientY;
 
-        const deltaX = clientX - dragStartRef.current.x;
-        const deltaY = clientY - dragStartRef.current.y;
-
         dragStartRef.current = { x: clientX, y: clientY };
 
-        let newRect = { ...rectRef.current };
-
-        if (isDraggingRef.current) {
-            newRect.x += deltaX;
-            newRect.y += deltaY;
-        } else if (activeHandleRef.current === 'se') {
-            newRect.width += deltaX;
-            newRect.height += deltaY;
-        }
-
-        // Boundary checks (optional but good)
-        // if (newRect.x < 0) newRect.x = 0;
-        // ...
-
-        rectRef.current = newRect;
-        setRect(newRect);
-
-        // Emit PERCENTAGES
-        if (onChange) {
-            onChange({
-                x: (newRect.x / containerWidth) * 100,
-                y: (newRect.y / containerHeight) * 100,
-                width: (newRect.width / containerWidth) * 100,
-                height: (newRect.height / containerHeight) * 100,
-                unit: '%'
-            });
+        if (handle) {
+            activeHandleRef.current = handle;
+        } else {
+            isDraggingRef.current = true;
+            setIsDraggingState(true);
         }
     };
 
-    const handleMouseUp = () => {
-        if (isDraggingRef.current || activeHandleRef.current) {
-            isDraggingRef.current = false;
-            activeHandleRef.current = null;
-            setIsDraggingState(false);
-        }
-    };
-
-    window.addEventListener('mousemove', handleMouseMove, { passive: false });
-    window.addEventListener('mouseup', handleMouseUp);
-    window.addEventListener('touchmove', handleMouseMove, { passive: false });
-    window.addEventListener('touchend', handleMouseUp);
-
-    return () => {
-        window.removeEventListener('mousemove', handleMouseMove);
-        window.removeEventListener('mouseup', handleMouseUp);
-        window.removeEventListener('touchmove', handleMouseMove);
-        window.removeEventListener('touchend', handleMouseUp);
-    };
-}, [imageSrc, onChange]);
-
-const handleMouseDown = (e, handle = null) => {
-    // Prevent default to stop text selection or native image drag
-    e.preventDefault();
-    e.stopPropagation();
-
-    const clientX = e.clientX || e.touches?.[0]?.clientX;
-    const clientY = e.clientY || e.touches?.[0]?.clientY;
-
-    // Set initial drag point
-    dragStartRef.current = { x: clientX, y: clientY };
-
-    // Update refs
-    if (handle) {
-        activeHandleRef.current = handle;
-    } else {
-        isDraggingRef.current = true;
-        setIsDraggingState(true);
+    if (!imageSrc) {
+        return (
+            <div className={styles.emptyState}>
+                <ImagePlus size={48} />
+                <p>Faça upload de uma imagem para configurar o template</p>
+            </div>
+        );
     }
-};
 
-if (!imageSrc) {
     return (
-        <div className={styles.emptyState}>
-            <ImagePlus size={48} />
-            <p>Faça upload de uma imagem para configurar o template</p>
+        <div className={styles.container} ref={containerRef}>
+            <img
+                src={imageSrc}
+                alt="Template Preview"
+                className={styles.image}
+                onLoad={(e) => {
+                    const { width, height } = e.currentTarget.getBoundingClientRect();
+
+                    let startRect = { ...initialConfig };
+
+                    // Convert % to px for editing
+                    if (initialConfig?.unit === '%') {
+                        startRect = {
+                            x: (initialConfig.x / 100) * width,
+                            y: (initialConfig.y / 100) * height,
+                            width: (initialConfig.width / 100) * width,
+                            height: (initialConfig.height / 100) * height
+                        };
+                    }
+
+                    setRect(startRect);
+                    rectRef.current = startRect;
+                }}
+            />
+
+            <div
+                className={styles.overlay}
+                style={{
+                    left: rect.x,
+                    top: rect.y,
+                    width: rect.width,
+                    height: rect.height,
+                    position: 'absolute',
+                    cursor: isDraggingState ? 'grabbing' : 'grab'
+                }}
+                onMouseDown={(e) => handleMouseDown(e)}
+                onTouchStart={(e) => handleMouseDown(e)}
+            >
+                <div
+                    className={`${styles.handle} ${styles.handleSe}`}
+                    onMouseDown={(e) => handleMouseDown(e, 'se')}
+                    onTouchStart={(e) => handleMouseDown(e, 'se')}
+                />
+            </div>
         </div>
     );
-}
-
-return (
-    <div className={styles.container} ref={containerRef}>
-        <img src={imageSrc} alt="Template Preview" className={styles.image} />
-
-        <div
-            className={styles.overlay}
-            style={{
-                left: rect.x,
-                top: rect.y,
-                width: rect.width,
-                height: rect.height,
-                position: 'absolute',
-                cursor: isDraggingState ? 'grabbing' : 'grab'
-            }}
-            onMouseDown={(e) => handleMouseDown(e)}
-            onTouchStart={(e) => handleMouseDown(e)}
-        >
-            <div
-                className={`${styles.handle} ${styles.handleSe}`}
-                onMouseDown={(e) => handleMouseDown(e, 'se')}
-                onTouchStart={(e) => handleMouseDown(e, 'se')}
-            />
-        </div>
-    </div>
-);
 }
