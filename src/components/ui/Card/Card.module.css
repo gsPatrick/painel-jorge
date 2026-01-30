@@ -1,0 +1,13 @@
+.card {
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background-color: var(--card);
+    color: var(--card-foreground);
+    padding: 1.5rem;
+    /* Clean shadow, no heavy drops */
+}
+
+/* Mobile variant or modifier if needed */
+.compact {
+    padding: 1rem;
+}

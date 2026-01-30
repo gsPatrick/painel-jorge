@@ -1,0 +1,38 @@
+.header {
+    height: 4rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 2rem;
+    background-color: var(--background);
+    /* Or var(--card) if preferred */
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.user {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.avatar {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 9999px;
+    background-color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--foreground);
+}
+
+.email {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--foreground);
+}

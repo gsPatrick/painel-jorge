@@ -1,0 +1,67 @@
+.container {
+    position: relative;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background-color: var(--card);
+}
+
+.image {
+    display: block;
+    width: 100%;
+    height: auto;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.overlay {
+    position: absolute;
+    border: 2px solid var(--primary);
+    background-color: rgba(255, 255, 255, 0.2);
+    cursor: move;
+}
+
+.handle {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: var(--primary);
+    border: 1px solid var(--background);
+    border-radius: 50%;
+}
+
+.handleNw {
+    top: -5px;
+    left: -5px;
+    cursor: nw-resize;
+}
+
+.handleNe {
+    top: -5px;
+    right: -5px;
+    cursor: ne-resize;
+}
+
+.handleSw {
+    bottom: -5px;
+    left: -5px;
+    cursor: sw-resize;
+}
+
+.handleSe {
+    bottom: -5px;
+    right: -5px;
+    cursor: se-resize;
+}
+
+.emptyState {
+    padding: 3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    color: var(--muted-foreground);
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+}

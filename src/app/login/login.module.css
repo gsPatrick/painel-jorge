@@ -1,0 +1,84 @@
+.container {
+    display: flex;
+    min-height: 100vh;
+    width: 100vw;
+    background-color: var(--background);
+}
+
+.leftPanel {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+    border-right: 1px solid var(--border);
+    overflow: hidden;
+    /* Ensure blurred edges don't spill out */
+}
+
+/* Background Image with Blur */
+.leftPanel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url('/login-bg-mobile.png');
+    background-size: cover;
+    background-position: center;
+    filter: blur(3px);
+    /* Leve blur */
+    transform: scale(1.05);
+    /* Prevent white edges from blur */
+    z-index: 0;
+}
+
+/* Gradient Overlay */
+.leftPanel::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0));
+    /* Slightly darker for contrast */
+    z-index: 1;
+}
+
+.rightPanel {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.authBox {
+    width: 100%;
+    max-width: 24rem;
+    /* max-w-sm */
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.header {
+    text-align: left;
+    /* Senior: Left-aligned usually cleaner for split layouts */
+}
+
+.title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--foreground);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.03em;
+}
+
+.subtitle {
+    font-size: 1rem;
+    color: var(--muted-foreground);
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
