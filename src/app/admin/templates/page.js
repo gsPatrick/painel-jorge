@@ -113,7 +113,7 @@ function TemplateCard({ template, onDelete, onTest }) {
 
     return (
         <Card style={{ padding: 0, overflow: 'hidden', position: 'relative' }}>
-            <div style={{ height: '300px', backgroundColor: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+            <div style={{ aspectRatio: '210/297', backgroundColor: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                 {!imgError ? (
                     <img
                         src={`https://geral-apijorge.r954jc.easypanel.host/uploads/${template.fileName}`}
