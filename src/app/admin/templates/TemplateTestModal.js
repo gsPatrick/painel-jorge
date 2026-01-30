@@ -74,10 +74,10 @@ export default function TemplateTestModal({ template, onClose }) {
                         <div
                             style={{
                                 position: 'absolute',
-                                left: config.x,
-                                top: config.y,
-                                width: config.width,
-                                height: config.height,
+                                left: config.unit === '%' ? `${config.x}%` : config.x,
+                                top: config.unit === '%' ? `${config.y}%` : config.y,
+                                width: config.unit === '%' ? `${config.width}%` : config.width,
+                                height: config.unit === '%' ? `${config.height}%` : config.height,
                                 overflow: 'hidden',
                                 zIndex: 10, // On top of template
                                 backgroundColor: 'white' // Ensure background for photo
