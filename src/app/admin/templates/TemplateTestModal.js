@@ -10,6 +10,16 @@ export default function TemplateTestModal({ template, onClose }) {
     const [zoom, setZoom] = useState(1);
     const fileInputRef = useRef(null);
 
+    // Parse config
+    let config = template.configJson;
+    if (typeof config === 'string') {
+        try {
+            config = JSON.parse(config);
+        } catch (e) {
+            config = { x: 0, y: 0, width: 100, height: 100 };
+        }
+    }
+
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         if (file) {
