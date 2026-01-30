@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Button from '@/components/ui/Button/Button';
 import Card from '@/components/ui/Card/Card';
 import templateService from '@/services/template.service';
-import { Plus, Image as ImageIcon, Trash2, HelpCircle, Download } from 'lucide-react';
+import { Plus, Image as ImageIcon, Trash2, HelpCircle, Download, Edit } from 'lucide-react';
 
 export default function TemplatesPage() {
     const [templates, setTemplates] = useState([]);
@@ -87,12 +87,18 @@ export default function TemplatesPage() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
                     {templates.map((template) => (
                         <Card key={template.id} style={{ padding: 0, overflow: 'hidden', position: 'relative' }}>
-                            <div style={{ height: '300px', backgroundColor: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                {/* Mock preview or real image if accessible. 
-                                    Assuming template.fileName is relative or we need a base URL. 
-                                    For now just showing icon as placeholder or we could fetch the image. 
-                                */}
-                                <ImageIcon size={48} color="var(--muted-foreground)" />
+                            <div style={{ height: '300px', backgroundColor: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                                <img
+                                    src={`https://geral-apijorge.r954jc.easypanel.host/uploads/${template.fileName}`}
+                                    alt={template.name}
+                                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                                    onError={(e) => {
+                                        e.target.onerror = null;
+                                        e.target.src = '/placeholder.png'; // Fallback if you have one, or hide
+                                        e.target.style.display = 'none';
+                                        e.target.parentNode.innerHTML = '<div style="color: #666; font-size: 14px;">Imagem não encontrada</div>';
+                                    }}
+                                />
                             </div>
                             <div style={{ padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div>
@@ -101,9 +107,16 @@ export default function TemplatesPage() {
                                         {template.isActive ? 'Ativo' : 'Inativo'}
                                     </p>
                                 </div>
-                                <Button variant="destructive" size="sm" onClick={() => handleDelete(template.id)} style={{ padding: '0.5rem' }}>
-                                    <Trash2 size={16} />
-                                </Button>
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <Link href={`/admin/templates/${template.id}`}>
+                                        <Button variant="ghost" size="sm" style={{ padding: '0.5rem' }} title="Editar">
+                                            <Edit size={16} />
+                                        </Button>
+                                    </Link>
+                                    <Button variant="destructive" size="sm" onClick={() => handleDelete(template.id)} style={{ padding: '0.5rem' }} title="Excluir">
+                                        <Trash2 size={16} />
+                                    </Button>
+                                </div>
                             </div>
                         </Card>
                     ))}
