@@ -4,7 +4,9 @@ import { useState, useRef, useEffect } from 'react';
 import styles from './VisualEditor.module.css';
 import { ImagePlus } from 'lucide-react';
 
-export default function VisualEditor({ imageSrc, initialConfig, onChange }) {
+export default function VisualEditor({ imageSrc, initialConfig, onChange, canvasSize }) {
+    const aspectRatio = canvasSize ? `${canvasSize.width}/${canvasSize.height}` : '210/297';
+
     const containerRef = useRef(null);
     const [rect, setRect] = useState(initialConfig || { x: 50, y: 50, width: 200, height: 200 });
     const [isDraggingState, setIsDraggingState] = useState(false);

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Image as ImageIcon, Users, LogOut } from 'lucide-react';
+import { LayoutDashboard, Image as ImageIcon, Users, LogOut, BarChart3 } from 'lucide-react';
 import styles from './Sidebar.module.css';
 import authService from '@/services/auth.service';
 import { useRouter } from 'next/navigation';
@@ -26,6 +26,11 @@ export default function Sidebar() {
             label: 'Fotógrafos',
             href: '/admin/users',
             icon: Users
+        },
+        {
+            label: 'Relatórios',
+            href: '/admin/reports',
+            icon: BarChart3
         }
     ];
 
