@@ -13,7 +13,7 @@ export default function LoginPage() {
     const [error, setError] = useState('');
 
     const [formData, setFormData] = useState({
-        email: 'admin@printshot.com',
+        email: 'admin@shottelling.com',
         password: ''
     });
 
@@ -63,7 +63,7 @@ export default function LoginPage() {
                             label="Email"
                             name="email"
                             type="email"
-                            placeholder="exemplo@printshot.com"
+                            placeholder="exemplo@shottelling.com"
                             value={formData.email}
                             onChange={handleChange}
                             required

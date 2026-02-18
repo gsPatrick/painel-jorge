@@ -1,0 +1,41 @@
+.container {
+    width: 100%;
+    background-color: #f3f4f6;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--border);
+}
+
+.toolbar {
+    display: flex;
+    gap: 1rem;
+    padding: 0.5rem 1rem;
+    background: white;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0;
+}
+
+.toolItem {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: var(--foreground);
+    transition: background 0.1s;
+}
+
+.toolItem:hover {
+    background: var(--muted);
+}
+
+.empty {
+    padding: 3rem;
+    text-align: center;
+    color: var(--muted-foreground);
+    background: var(--muted);
+    border-radius: 0.5rem;
+}

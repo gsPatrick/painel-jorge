@@ -6,9 +6,10 @@ import Button from '@/components/ui/Button/Button';
 import Input from '@/components/ui/Input/Input';
 import Card from '@/components/ui/Card/Card';
 import VisualEditor from '@/components/features/Template/VisualEditor/VisualEditor';
+import AdvancedVisualEditor from '@/components/features/Template/AdvancedVisualEditor/AdvancedVisualEditor';
 import TextLayerEditor from '@/components/features/Template/TextLayerEditor/TextLayerEditor';
 import templateService from '@/services/template.service';
-import { Save, ArrowLeft } from 'lucide-react';
+import { Save, ArrowLeft, Wand2, PenTool } from 'lucide-react';
 import Link from 'next/link';
 import api from '@/services/api';
 
@@ -34,6 +35,7 @@ export default function EditTemplatePage() {
     const [textLayers, setTextLayers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [isAdvancedMode, setIsAdvancedMode] = useState(false);
 
     useEffect(() => {
         if (id) fetchTemplate();
@@ -190,12 +192,35 @@ export default function EditTemplatePage() {
                 </div>
             </Card>
 
-            <VisualEditor
-                imageSrc={imagePreview}
-                initialConfig={config}
-                onChange={setConfig}
-                canvasSize={canvasSize}
-            />
+            {/* Editor Mode Toggle */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Button
+                    variant="outline"
+                    onClick={() => setIsAdvancedMode(!isAdvancedMode)}
+                    style={{ gap: '0.5rem' }}
+                >
+                    {isAdvancedMode ? <PenTool size={16} /> : <Wand2 size={16} />}
+                    {isAdvancedMode ? 'Usar Editor Simples' : 'Usar Editor Avançado (Beta)'}
+                </Button>
+            </div>
+
+            {isAdvancedMode ? (
+                <AdvancedVisualEditor
+                    imageSrc={imagePreview}
+                    initialConfig={config}
+                    onChange={setConfig}
+                    canvasSize={canvasSize}
+                    textLayers={textLayers}
+                    onTextLayerChange={setTextLayers}
+                />
+            ) : (
+                <VisualEditor
+                    imageSrc={imagePreview}
+                    initialConfig={config}
+                    onChange={setConfig}
+                    canvasSize={canvasSize}
+                />
+            )}
 
             <Card>
                 <TextLayerEditor layers={textLayers} onChange={setTextLayers} />

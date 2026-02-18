@@ -42,7 +42,7 @@ export default function Sidebar() {
     return (
         <aside className={styles.sidebar}>
             <div className={styles.logo}>
-                <span className={styles.logoText}>PrintShot Admin</span>
+                <span className={styles.logoText}>Shottelling Admin</span>
             </div>
 
             <nav className={styles.nav}>

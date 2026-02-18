@@ -1,8 +1,8 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "PrintShot Admin",
-  description: "Administrative Panel for PrintShot",
+  title: "Shottelling Admin",
+  description: "Administrative Panel for Shottelling",
 };
 
 export default function RootLayout({ children }) {
