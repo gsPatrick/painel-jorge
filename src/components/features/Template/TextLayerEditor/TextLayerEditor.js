@@ -95,12 +95,26 @@ export default function TextLayerEditor({ layers = [], onChange }) {
                         TEXTO #{index + 1}
                     </div>
 
-                    <Input
-                        label="Conteúdo"
-                        placeholder="Ex: {date} | {time} | Foto #{counter}"
-                        value={layer.content}
-                        onChange={(e) => updateLayer(index, 'content', e.target.value)}
-                    />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                        <label style={{ fontSize: '0.75rem', fontWeight: 500 }}>Conteúdo</label>
+                        <textarea
+                            placeholder="Ex: {date} | {time} | Foto #{counter}"
+                            value={layer.content}
+                            onChange={(e) => updateLayer(index, 'content', e.target.value)}
+                            style={{
+                                width: '100%',
+                                minHeight: '80px',
+                                padding: '0.5rem',
+                                borderRadius: '0.5rem',
+                                border: '1px solid var(--border)',
+                                background: 'var(--background)',
+                                color: 'var(--foreground)',
+                                fontSize: '0.875rem',
+                                resize: 'vertical',
+                                fontFamily: 'inherit',
+                            }}
+                        />
+                    </div>
 
                     {/* Variable insert buttons */}
                     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
