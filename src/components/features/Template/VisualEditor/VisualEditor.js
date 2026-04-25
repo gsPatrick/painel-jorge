@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import styles from './VisualEditor.module.css';
 import { ImagePlus } from 'lucide-react';
 
-export default function VisualEditor({ imageSrc, initialConfig, onChange, canvasSize }) {
+export default function VisualEditor({ imageSrc, overlaySrc, initialConfig, onChange, canvasSize }) {
     const aspectRatio = canvasSize ? `${canvasSize.width}/${canvasSize.height}` : '210/297';
 
     const containerRef = useRef(null);
@@ -156,6 +156,22 @@ export default function VisualEditor({ imageSrc, initialConfig, onChange, canvas
                     onTouchStart={(e) => handleMouseDown(e, 'se')}
                 />
             </div>
+
+            {overlaySrc && (
+                <img
+                    src={overlaySrc}
+                    alt="Overlay Preview"
+                    className={styles.overlayImage}
+                    style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        pointerEvents: 'none'
+                    }}
+                />
+            )}
         </div>
     );
 }

@@ -28,7 +28,9 @@ export default function EditTemplatePage() {
 
     const [name, setName] = useState('');
     const [file, setFile] = useState(null);
+    const [overlayFile, setOverlayFile] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
+    const [overlayPreview, setOverlayPreview] = useState(null);
     const [config, setConfig] = useState({ x: 50, y: 50, width: 200, height: 200 });
     const [canvasSize, setCanvasSize] = useState({ width: 210, height: 297 });
     const [canvasPreset, setCanvasPreset] = useState('A4 (210×297mm)');
@@ -61,6 +63,11 @@ export default function EditTemplatePage() {
 
             const imageUrl = `${api.defaults.baseURL.replace('/api', '')}/uploads/${data.fileName}`;
             setImagePreview(imageUrl);
+
+            if (data.overlayFileName) {
+                const overlayUrl = `${api.defaults.baseURL.replace('/api', '')}/uploads/${data.overlayFileName}`;
+                setOverlayPreview(overlayUrl);
+            }
         } catch (error) {
             console.error("Failed to fetch template", error);
             alert("Erro ao carregar template");
@@ -76,6 +83,15 @@ export default function EditTemplatePage() {
             setFile(selectedFile);
             const url = URL.createObjectURL(selectedFile);
             setImagePreview(url);
+        }
+    };
+
+    const handleOverlayFileChange = (e) => {
+        const selectedFile = e.target.files[0];
+        if (selectedFile) {
+            setOverlayFile(selectedFile);
+            const url = URL.createObjectURL(selectedFile);
+            setOverlayPreview(url);
         }
     };
 
@@ -95,6 +111,7 @@ export default function EditTemplatePage() {
             const formData = new FormData();
             formData.append('name', name);
             if (file) formData.append('file', file);
+            if (overlayFile) formData.append('overlayFile', overlayFile);
             formData.append('configJson', JSON.stringify({
                 ...config,
                 canvasSize,
@@ -144,6 +161,13 @@ export default function EditTemplatePage() {
                     type="file"
                     accept="image/*"
                     onChange={handleFileChange}
+                />
+
+                <Input
+                    label="Imagem de Sobreposição / Moldura (PNG Transparente)"
+                    type="file"
+                    accept="image/png"
+                    onChange={handleOverlayFileChange}
                 />
 
                 {/* Canvas Size Selector */}
@@ -207,6 +231,7 @@ export default function EditTemplatePage() {
             {isAdvancedMode ? (
                 <AdvancedVisualEditor
                     imageSrc={imagePreview}
+                    overlaySrc={overlayPreview}
                     initialConfig={config}
                     onChange={setConfig}
                     canvasSize={canvasSize}
@@ -216,6 +241,7 @@ export default function EditTemplatePage() {
             ) : (
                 <VisualEditor
                     imageSrc={imagePreview}
+                    overlaySrc={overlayPreview}
                     initialConfig={config}
                     onChange={setConfig}
                     canvasSize={canvasSize}

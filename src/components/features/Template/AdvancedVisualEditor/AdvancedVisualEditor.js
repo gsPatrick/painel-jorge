@@ -11,7 +11,7 @@ const URLImage = ({ src, ...props }) => {
     return <KonvaImage image={image} {...props} />;
 };
 
-export default function AdvancedVisualEditor({ imageSrc, initialConfig, onChange, textLayers, onTextLayerChange, canvasSize }) {
+export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConfig, onChange, textLayers, onTextLayerChange, canvasSize }) {
     const [selectedId, selectShape] = useState(null);
     const stageRef = useRef(null);
     const transformerRef = useRef(null);
@@ -212,6 +212,16 @@ export default function AdvancedVisualEditor({ imageSrc, initialConfig, onChange
                             fill="#fff"
                         />
                     </Group>
+
+                    {/* Overlay / Frame Layer */}
+                    {overlaySrc && (
+                        <URLImage
+                            src={overlaySrc}
+                            width={INTERNAL_WIDTH}
+                            height={INTERNAL_HEIGHT}
+                            listening={false}
+                        />
+                    )}
 
                     {/* Text Layers */}
                     {textLayers.map((layer, i) => (
