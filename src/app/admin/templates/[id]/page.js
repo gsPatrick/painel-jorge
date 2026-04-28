@@ -9,7 +9,7 @@ import VisualEditor from '@/components/features/Template/VisualEditor/VisualEdit
 import AdvancedVisualEditor from '@/components/features/Template/AdvancedVisualEditor/AdvancedVisualEditor';
 import TextLayerEditor from '@/components/features/Template/TextLayerEditor/TextLayerEditor';
 import templateService from '@/services/template.service';
-import { Save, ArrowLeft, Wand2, PenTool } from 'lucide-react';
+import { Save, ArrowLeft, Wand2, PenTool, MousePointer2, Maximize, RotateCw, Mouse } from 'lucide-react';
 import Link from 'next/link';
 import api from '@/services/api';
 
@@ -289,23 +289,36 @@ export default function EditTemplatePage() {
                     {/* Command Legend */}
                     <div style={{ 
                         position: 'absolute', 
-                        top: '1rem', 
+                        top: '1.5rem', 
                         left: '50%', 
                         transform: 'translateX(-50%)', 
                         zIndex: 20,
-                        backgroundColor: 'rgba(255,255,255,0.9)',
-                        padding: '0.5rem 1rem',
+                        backgroundColor: 'rgba(255,255,255,0.95)',
+                        padding: '0.6rem 1.25rem',
                         borderRadius: '99px',
-                        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-                        fontSize: '0.7rem',
+                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
                         display: 'flex',
-                        gap: '1rem',
-                        whiteSpace: 'nowrap'
+                        alignItems: 'center',
+                        gap: '1.5rem',
+                        backdropFilter: 'blur(8px)',
+                        border: '1px solid rgba(255,255,255,0.2)'
                     }}>
-                        <span>🖱️ Arraste p/ mover</span>
-                        <span>📐 Cantos p/ escala</span>
-                        <span>🔄 Alça p/ girar</span>
-                        <span>🖱️🖱️ Duplo clique p/ selecionar</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: '#475569' }}>
+                            <MousePointer2 size={14} color="#3b82f6" /> 
+                            <span><b>Arraste</b> p/ mover</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: '#475569' }}>
+                            <Maximize size={14} color="#10b981" /> 
+                            <span><b>Cantos</b> p/ redimensionar</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: '#475569' }}>
+                            <RotateCw size={14} color="#f59e0b" /> 
+                            <span><b>Alça</b> p/ girar</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: '#475569' }}>
+                            <Mouse size={14} color="#8b5cf6" /> 
+                            <span><b>Duplo clique</b> p/ selecionar</span>
+                        </div>
                     </div>
 
                     <div style={{ 

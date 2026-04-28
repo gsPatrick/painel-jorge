@@ -9,7 +9,7 @@ import VisualEditor from '@/components/features/Template/VisualEditor/VisualEdit
 import AdvancedVisualEditor from '@/components/features/Template/AdvancedVisualEditor/AdvancedVisualEditor';
 import TextLayerEditor from '@/components/features/Template/TextLayerEditor/TextLayerEditor';
 import templateService from '@/services/template.service';
-import { Save, ArrowLeft, Wand2, PenTool } from 'lucide-react';
+import { Save, ArrowLeft, Wand2, PenTool, MousePointer2, Maximize, RotateCw, Mouse } from 'lucide-react';
 import Link from 'next/link';
 
 const CANVAS_PRESETS = [
@@ -74,128 +74,200 @@ export default function NewTemplatePage() {
     };
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', maxWidth: '800px', margin: '0 auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            height: 'calc(100vh - 40px)', 
+            margin: '-20px', 
+            backgroundColor: '#f1f5f9'
+        }}>
+            {/* Professional Header */}
+            <header style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                padding: '1rem 2rem', 
+                backgroundColor: '#fff', 
+                borderBottom: '1px solid #e2e8f0',
+                zIndex: 50
+            }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <Link href="/admin/templates">
                         <Button variant="ghost" style={{ padding: '0.5rem' }}><ArrowLeft size={20} /></Button>
                     </Link>
                     <div>
-                        <h1 style={{ fontSize: '1.875rem', fontWeight: 700 }}>Novo Template</h1>
-                        <p style={{ color: 'var(--muted-foreground)' }}>Configure a área de impressão</p>
+                        <h1 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>Novo Template</h1>
+                        <p style={{ color: '#64748b', fontSize: '0.75rem', margin: 0 }}>Configure as áreas de impressão</p>
                     </div>
                 </div>
-                <Button onClick={handleSave} loading={loading} disabled={!name || !file}>
-                    <Save size={20} />
-                    Salvar Template
-                </Button>
-            </div>
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <Button variant="outline" onClick={() => setIsAdvancedMode(!isAdvancedMode)} style={{ gap: '0.5rem' }}>
+                        {isAdvancedMode ? <PenTool size={16} /> : <Wand2 size={16} />}
+                        {isAdvancedMode ? 'Editor Simples' : 'Editor Avançado'}
+                    </Button>
+                    <Button onClick={handleSave} loading={loading} disabled={!name || !file} style={{ gap: '0.5rem' }}>
+                        <Save size={18} />
+                        Salvar Template
+                    </Button>
+                </div>
+            </header>
 
-            <Card style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                <Input
-                    label="Nome do Template"
-                    placeholder="Ex: Casamento João e Maria"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                />
-
-                <Input
-                    label="Imagem de Fundo"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                />
-
-                {/* Canvas Size Selector */}
-                <div>
-                    <label style={{ fontSize: '0.875rem', fontWeight: 500, display: 'block', marginBottom: '0.5rem' }}>
-                        Tamanho do Canvas
-                    </label>
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        {CANVAS_PRESETS.map((preset) => (
-                            <button
-                                key={preset.label}
-                                onClick={() => handleCanvasPreset(preset.label)}
-                                style={{
-                                    padding: '0.5rem 1rem',
-                                    borderRadius: '0.5rem',
-                                    border: canvasPreset === preset.label ? '2px solid var(--primary)' : '1px solid var(--border)',
-                                    background: canvasPreset === preset.label ? 'var(--primary)' : 'var(--background)',
-                                    color: canvasPreset === preset.label ? '#FFF' : 'var(--foreground)',
-                                    cursor: 'pointer',
-                                    fontSize: '0.8rem',
-                                    fontWeight: 500,
-                                    transition: 'all 0.15s',
-                                }}
-                            >
-                                {preset.label}
-                            </button>
-                        ))}
-                    </div>
-
-                    {canvasPreset === 'Personalizado' && (
-                        <div style={{ display: 'flex', gap: '1rem', marginTop: '0.75rem' }}>
+            <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+                {/* Sidebar */}
+                <aside style={{ 
+                    width: '350px', 
+                    backgroundColor: '#fff', 
+                    borderRight: '1px solid #e2e8f0', 
+                    padding: '1.5rem', 
+                    overflowY: 'auto',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '1.5rem'
+                }}>
+                    <section>
+                        <h3 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '1rem', color: '#1e293b' }}>Informações Básicas</h3>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             <Input
-                                label="Largura (mm)"
-                                type="number"
-                                value={canvasSize.width}
-                                onChange={(e) => setCanvasSize(s => ({ ...s, width: parseInt(e.target.value) || 0 }))}
+                                label="Nome do Template"
+                                placeholder="Ex: Evento Corporativo"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
                             />
                             <Input
-                                label="Altura (mm)"
-                                type="number"
-                                value={canvasSize.height}
-                                onChange={(e) => setCanvasSize(s => ({ ...s, height: parseInt(e.target.value) || 0 }))}
+                                label="Imagem de Fundo"
+                                type="file"
+                                accept="image/*"
+                                onChange={handleFileChange}
                             />
                         </div>
-                    )}
-                </div>
-            </Card>
+                    </section>
 
-            {/* Editor Mode Toggle */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)', display: 'flex', gap: '1rem' }}>
-                    <span>🖱️ <b>Arraste</b> para mover</span>
-                    <span>📐 <b>Cantos</b> para redimensionar</span>
-                    <span>🔄 <b>Alça superior</b> para girar</span>
-                    <span>🖱️🖱️ <b>Clique duplo</b> p/ selecionar</span>
-                </div>
-                <Button
-                    variant="outline"
-                    onClick={() => setIsAdvancedMode(!isAdvancedMode)}
-                    style={{ gap: '0.5rem' }}
-                >
-                    {isAdvancedMode ? <PenTool size={16} /> : <Wand2 size={16} />}
-                    {isAdvancedMode ? 'Mudar para Editor Simples' : 'Mudar para Editor Avançado'}
-                </Button>
+                    <section style={{ borderTop: '1px solid #f1f5f9', paddingTop: '1.5rem' }}>
+                        <h3 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '1rem', color: '#1e293b' }}>Tamanho do Papel</h3>
+                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                            {CANVAS_PRESETS.map((preset) => (
+                                <button
+                                    key={preset.label}
+                                    onClick={() => handleCanvasPreset(preset.label)}
+                                    style={{
+                                        padding: '0.4rem 0.75rem',
+                                        borderRadius: '0.375rem',
+                                        border: '1px solid',
+                                        borderColor: canvasPreset === preset.label ? '#3b82f6' : '#e2e8f0',
+                                        background: canvasPreset === preset.label ? '#eff6ff' : '#fff',
+                                        color: canvasPreset === preset.label ? '#2563eb' : '#64748b',
+                                        cursor: 'pointer',
+                                        fontSize: '0.7rem',
+                                        fontWeight: 500,
+                                    }}
+                                >
+                                    {preset.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        {canvasPreset === 'Personalizado' && (
+                            <div style={{ display: 'flex', gap: '0.75rem' }}>
+                                <Input
+                                    label="L (mm)"
+                                    type="number"
+                                    value={canvasSize.width}
+                                    onChange={(e) => setCanvasSize(s => ({ ...s, width: parseInt(e.target.value) || 0 }))}
+                                />
+                                <Input
+                                    label="A (mm)"
+                                    type="number"
+                                    value={canvasSize.height}
+                                    onChange={(e) => setCanvasSize(s => ({ ...s, height: parseInt(e.target.value) || 0 }))}
+                                />
+                            </div>
+                        )}
+                    </section>
+
+                    <section style={{ borderTop: '1px solid #f1f5f9', paddingTop: '1.5rem' }}>
+                        <h3 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '1rem', color: '#1e293b' }}>Camadas de Texto</h3>
+                        <TextLayerEditor layers={textLayers} onChange={setTextLayers} />
+                    </section>
+                </aside>
+
+                {/* Main Editor Area */}
+                <main style={{ 
+                    flex: 1, 
+                    backgroundColor: '#cbd5e1', 
+                    overflow: 'hidden', 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    position: 'relative'
+                }}>
+                    {/* Professional Tips Bar */}
+                    <div style={{ 
+                        position: 'absolute', 
+                        top: '1.5rem', 
+                        left: '50%', 
+                        transform: 'translateX(-50%)', 
+                        zIndex: 20,
+                        backgroundColor: 'rgba(255,255,255,0.95)',
+                        padding: '0.6rem 1.25rem',
+                        borderRadius: '99px',
+                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '1.5rem',
+                        border: '1px solid rgba(255,255,255,0.2)',
+                        backdropFilter: 'blur(8px)'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: '#475569' }}>
+                            <MousePointer2 size={14} color="#3b82f6" /> 
+                            <span><b>Arraste</b> p/ mover</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: '#475569' }}>
+                            <Maximize size={14} color="#10b981" /> 
+                            <span><b>Cantos</b> p/ redimensionar</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: '#475569' }}>
+                            <RotateCw size={14} color="#f59e0b" /> 
+                            <span><b>Alça</b> p/ girar</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: '#475569' }}>
+                            <Mouse size={14} color="#8b5cf6" /> 
+                            <span><b>Duplo clique</b> p/ selecionar</span>
+                        </div>
+                    </div>
+
+                    <div style={{ 
+                        flex: 1, 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        padding: '3rem',
+                        overflow: 'auto'
+                    }}>
+                        <div style={{ 
+                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+                            backgroundColor: '#fff',
+                            lineHeight: 0
+                        }}>
+                            {isAdvancedMode ? (
+                                <AdvancedVisualEditor
+                                    imageSrc={imagePreview}
+                                    initialConfig={config}
+                                    onChange={setConfig}
+                                    canvasSize={canvasSize}
+                                    textLayers={textLayers}
+                                    onTextLayerChange={setTextLayers}
+                                />
+                            ) : (
+                                <VisualEditor
+                                    imageSrc={imagePreview}
+                                    initialConfig={config}
+                                    onChange={setConfig}
+                                    canvasSize={canvasSize}
+                                />
+                            )}
+                        </div>
+                    </div>
+                </main>
             </div>
-
-            {isAdvancedMode ? (
-                <AdvancedVisualEditor
-                    imageSrc={imagePreview}
-                    initialConfig={config}
-                    onChange={setConfig}
-                    canvasSize={canvasSize}
-                    textLayers={textLayers}
-                    onTextLayerChange={setTextLayers}
-                />
-            ) : (
-                <VisualEditor
-                    imageSrc={imagePreview}
-                    initialConfig={config}
-                    onChange={setConfig}
-                    canvasSize={canvasSize}
-                />
-            )}
-
-            <Card>
-                <TextLayerEditor layers={textLayers} onChange={setTextLayers} />
-            </Card>
-
-            {/* Debug Info */}
-            <Card style={{ backgroundColor: 'var(--muted)', fontSize: '0.75rem', fontFamily: 'monospace' }}>
-                <strong>Configuração (JSON):</strong> {JSON.stringify({ ...config, canvasSize, textLayers }, null, 2)}
-            </Card>
         </div>
     );
 }
