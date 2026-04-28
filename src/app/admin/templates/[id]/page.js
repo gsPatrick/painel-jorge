@@ -163,12 +163,37 @@ export default function EditTemplatePage() {
                     onChange={handleFileChange}
                 />
 
-                <Input
-                    label="Imagem de Sobreposição / Moldura (PNG Transparente)"
-                    type="file"
-                    accept="image/png"
-                    onChange={handleOverlayFileChange}
-                />
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1rem' }}>
+                    <div style={{ flex: 1 }}>
+                        <Input
+                            label="Imagem de Sobreposição / Moldura (PNG Transparente)"
+                            type="file"
+                            accept="image/png"
+                            onChange={handleOverlayFileChange}
+                        />
+                    </div>
+                    {overlayPreview && (
+                        <Button 
+                            variant="danger" 
+                            onClick={() => {
+                                setOverlayFile(null);
+                                setOverlayPreview(null);
+                                // Set a flag or clear the field so the update knows to remove it
+                                setConfig(prev => ({ ...prev, removeOverlay: true }));
+                            }}
+                            style={{ 
+                                marginBottom: '0.5rem',
+                                backgroundColor: '#ef4444',
+                                color: '#fff',
+                                padding: '0.5rem 1rem',
+                                borderRadius: '0.375rem',
+                                fontSize: '0.875rem'
+                            }}
+                        >
+                            Remover
+                        </Button>
+                    )}
+                </div>
 
                 {/* Canvas Size Selector */}
                 <div>

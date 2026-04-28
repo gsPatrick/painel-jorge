@@ -27,9 +27,20 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
     const aspectRatio = canvasSize ? canvasSize.width / canvasSize.height : 210 / 297;
     const INTERNAL_HEIGHT = INTERNAL_WIDTH / aspectRatio;
 
+    // Overlay State
+    const [overlay, setOverlay] = useState({
+        x: (initialConfig?.overlayX || 0),
+        y: (initialConfig?.overlayY || 0),
+        width: (initialConfig?.overlayWidth || INTERNAL_WIDTH),
+        height: (initialConfig?.overlayHeight || INTERNAL_HEIGHT),
+        rotation: (initialConfig?.overlayRotation || 0),
+        id: 'overlay_layer',
+        type: 'overlay'
+    });
+
     // Photo Placeholder State
     const [placeholder, setPlaceholder] = useState({
-        x: (initialConfig?.x || 0), // These come in % from parent usually? No, parent passes config object
+        x: (initialConfig?.x || 0),
         y: (initialConfig?.y || 0),
         width: (initialConfig?.width || 0),
         height: (initialConfig?.height || 0),
@@ -50,6 +61,18 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
                 id: 'photo_placeholder',
                 type: 'placeholder'
             });
+
+            if (initialConfig.overlayWidth) {
+                setOverlay({
+                    x: (initialConfig.overlayX / 100) * INTERNAL_WIDTH,
+                    y: (initialConfig.overlayY / 100) * INTERNAL_HEIGHT,
+                    width: (initialConfig.overlayWidth / 100) * INTERNAL_WIDTH,
+                    height: (initialConfig.overlayHeight / 100) * INTERNAL_HEIGHT,
+                    rotation: initialConfig.overlayRotation || 0,
+                    id: 'overlay_layer',
+                    type: 'overlay'
+                });
+            }
         }
     }, [initialConfig, INTERNAL_HEIGHT]);
 
@@ -108,6 +131,21 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
                     width: (updated.width / INTERNAL_WIDTH) * 100,
                     height: (updated.height / INTERNAL_HEIGHT) * 100,
                     rotation: updated.rotation,
+                    unit: '%'
+                });
+            }
+        } else if (selectedId === 'overlay_layer') {
+            const updated = { ...overlay, ...newProps };
+            setOverlay(updated);
+
+            if (onChange) {
+                onChange({
+                    ...initialConfig,
+                    overlayX: (updated.x / INTERNAL_WIDTH) * 100,
+                    overlayY: (updated.y / INTERNAL_HEIGHT) * 100,
+                    overlayWidth: (updated.width / INTERNAL_WIDTH) * 100,
+                    overlayHeight: (updated.height / INTERNAL_HEIGHT) * 100,
+                    overlayRotation: updated.rotation,
                     unit: '%'
                 });
             }
@@ -215,12 +253,26 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
 
                     {/* Overlay / Frame Layer */}
                     {overlaySrc && (
-                        <URLImage
-                            src={overlaySrc}
-                            width={INTERNAL_WIDTH}
-                            height={INTERNAL_HEIGHT}
-                            listening={false}
-                        />
+                        <Group
+                            x={overlay.x}
+                            y={overlay.y}
+                            width={overlay.width}
+                            height={overlay.height}
+                            rotation={overlay.rotation}
+                            draggable
+                            id="overlay_layer"
+                            name="overlay_layer"
+                            onDragEnd={handleDragEnd}
+                            onTransformEnd={handleTransformEnd}
+                            onClick={() => handleSelect('overlay_layer')}
+                            onTap={() => handleSelect('overlay_layer')}
+                        >
+                            <URLImage
+                                src={overlaySrc}
+                                width={overlay.width}
+                                height={overlay.height}
+                            />
+                        </Group>
                     )}
 
                     {/* Text Layers */}
