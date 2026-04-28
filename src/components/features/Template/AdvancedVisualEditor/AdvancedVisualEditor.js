@@ -154,14 +154,34 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
     useEffect(() => {
         const resize = () => {
             if (containerRef.current) {
-                const { offsetWidth } = containerRef.current;
-                setScale(offsetWidth / INTERNAL_WIDTH);
+                const parent = containerRef.current.parentElement;
+                if (!parent) return;
+                
+                const padding = 60; // Extra padding
+                const availableWidth = parent.offsetWidth - padding;
+                const availableHeight = parent.offsetHeight - padding;
+                
+                const scaleW = availableWidth / INTERNAL_WIDTH;
+                const scaleH = availableHeight / INTERNAL_HEIGHT;
+                
+                // Use the smaller scale to ensure it fits both directions
+                setScale(Math.min(scaleW, scaleH, 1)); 
             }
         };
+        
+        // Use ResizeObserver for better accuracy in flex layouts
+        const observer = new ResizeObserver(resize);
+        if (containerRef.current?.parentElement) {
+            observer.observe(containerRef.current.parentElement);
+        }
+        
         resize();
         window.addEventListener('resize', resize);
-        return () => window.removeEventListener('resize', resize);
-    }, []);
+        return () => {
+            window.removeEventListener('resize', resize);
+            observer.disconnect();
+        };
+    }, [INTERNAL_HEIGHT]);
 
     if (!imageSrc) return <div className={styles.empty}>Selecione uma imagem de fundo primeiro.</div>;
 
