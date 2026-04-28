@@ -1,19 +1,12 @@
 .container {
     width: 100%;
-    background-color: #f3f4f6;
-    border-radius: 0.5rem;
+    background-color: transparent;
     overflow: hidden;
     position: relative;
-    border: 1px solid var(--border);
 }
 
 .toolbar {
-    display: flex;
-    gap: 1rem;
-    padding: 0.5rem 1rem;
-    background: white;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 0;
+    display: none; /* We moved it to the sidebar/header logic if needed, but let's keep it hidden to clean up */
 }
 
 .toolItem {
@@ -24,18 +17,19 @@
     border-radius: 0.25rem;
     cursor: pointer;
     font-size: 0.8rem;
-    color: var(--foreground);
+    color: #475569;
     transition: background 0.1s;
 }
 
 .toolItem:hover {
-    background: var(--muted);
+    background: #f1f5f9;
 }
 
 .empty {
     padding: 3rem;
     text-align: center;
-    color: var(--muted-foreground);
-    background: var(--muted);
+    color: #64748b;
+    background: #f8fafc;
     border-radius: 0.5rem;
+    border: 1px dashed #cbd5e1;
 }

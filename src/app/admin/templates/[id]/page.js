@@ -131,162 +131,219 @@ export default function EditTemplatePage() {
     if (loading) return <div style={{ padding: '2rem' }}>Carregando...</div>;
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', maxWidth: '800px', margin: '0 auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            height: 'calc(100vh - 40px)', 
+            margin: '-20px', // Offset default padding if any
+            backgroundColor: '#f1f5f9'
+        }}>
+            {/* Sticky Header */}
+            <header style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                padding: '1rem 2rem', 
+                backgroundColor: '#fff', 
+                borderBottom: '1px solid #e2e8f0',
+                zIndex: 50
+            }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <Link href="/admin/templates">
                         <Button variant="ghost" style={{ padding: '0.5rem' }}><ArrowLeft size={20} /></Button>
                     </Link>
                     <div>
-                        <h1 style={{ fontSize: '1.875rem', fontWeight: 700 }}>Editar Template</h1>
-                        <p style={{ color: 'var(--muted-foreground)' }}>Atualizar configurações</p>
+                        <h1 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>{name || 'Novo Template'}</h1>
+                        <p style={{ color: '#64748b', fontSize: '0.75rem', margin: 0 }}>ID: {id === 'new' ? 'Novo' : id}</p>
                     </div>
                 </div>
-                <Button onClick={handleSave} loading={saving} disabled={!name}>
-                    <Save size={20} />
-                    Salvar Alterações
-                </Button>
-            </div>
-
-            <Card style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                <Input
-                    label="Nome do Template"
-                    placeholder="Ex: Casamento João e Maria"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                />
-
-                <Input
-                    label="Alterar Imagem de Fundo (Opcional)"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                />
-
-                <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1rem' }}>
-                    <div style={{ flex: 1 }}>
-                        <Input
-                            label="Imagem de Sobreposição / Moldura (PNG Transparente)"
-                            type="file"
-                            accept="image/png"
-                            onChange={handleOverlayFileChange}
-                        />
-                    </div>
-                    {overlayPreview && (
-                        <Button 
-                            variant="danger" 
-                            onClick={() => {
-                                setOverlayFile(null);
-                                setOverlayPreview(null);
-                                // Set a flag or clear the field so the update knows to remove it
-                                setConfig(prev => ({ ...prev, removeOverlay: true }));
-                            }}
-                            style={{ 
-                                marginBottom: '0.5rem',
-                                backgroundColor: '#ef4444',
-                                color: '#fff',
-                                padding: '0.5rem 1rem',
-                                borderRadius: '0.375rem',
-                                fontSize: '0.875rem'
-                            }}
-                        >
-                            Remover
-                        </Button>
-                    )}
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <Button variant="outline" onClick={() => setIsAdvancedMode(!isAdvancedMode)} style={{ gap: '0.5rem' }}>
+                        {isAdvancedMode ? <PenTool size={16} /> : <Wand2 size={16} />}
+                        {isAdvancedMode ? 'Editor Simples' : 'Editor Avançado'}
+                    </Button>
+                    <Button onClick={handleSave} loading={saving} disabled={!name} style={{ gap: '0.5rem' }}>
+                        <Save size={18} />
+                        Salvar
+                    </Button>
                 </div>
+            </header>
 
-                {/* Canvas Size Selector */}
-                <div>
-                    <label style={{ fontSize: '0.875rem', fontWeight: 500, display: 'block', marginBottom: '0.5rem' }}>
-                        Tamanho do Canvas
-                    </label>
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        {CANVAS_PRESETS.map((preset) => (
-                            <button
-                                key={preset.label}
-                                onClick={() => handleCanvasPreset(preset.label)}
-                                style={{
-                                    padding: '0.5rem 1rem',
-                                    borderRadius: '0.5rem',
-                                    border: canvasPreset === preset.label ? '2px solid var(--primary)' : '1px solid var(--border)',
-                                    background: canvasPreset === preset.label ? 'var(--primary)' : 'var(--background)',
-                                    color: canvasPreset === preset.label ? '#FFF' : 'var(--foreground)',
-                                    cursor: 'pointer',
-                                    fontSize: '0.8rem',
-                                    fontWeight: 500,
-                                    transition: 'all 0.15s',
-                                }}
-                            >
-                                {preset.label}
-                            </button>
-                        ))}
-                    </div>
-
-                    {canvasPreset === 'Personalizado' && (
-                        <div style={{ display: 'flex', gap: '1rem', marginTop: '0.75rem' }}>
+            <div style={{ 
+                display: 'flex', 
+                flex: 1, 
+                overflow: 'hidden', 
+                flexDirection: 'row',
+                flexWrap: 'wrap'
+            }}>
+                {/* Sidebar Settings */}
+                <aside style={{ 
+                    width: '350px', 
+                    backgroundColor: '#fff', 
+                    borderRight: '1px solid #e2e8f0', 
+                    padding: '1.5rem', 
+                    overflowY: 'auto',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '1.5rem'
+                }}>
+                    <section>
+                        <h3 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '1rem', color: '#1e293b' }}>Informações Gerais</h3>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             <Input
-                                label="Largura (mm)"
-                                type="number"
-                                value={canvasSize.width}
-                                onChange={(e) => setCanvasSize(s => ({ ...s, width: parseInt(e.target.value) || 0 }))}
+                                label="Nome do Template"
+                                placeholder="Ex: Casamento João e Maria"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
                             />
                             <Input
-                                label="Altura (mm)"
-                                type="number"
-                                value={canvasSize.height}
-                                onChange={(e) => setCanvasSize(s => ({ ...s, height: parseInt(e.target.value) || 0 }))}
+                                label="Fundo (Background)"
+                                type="file"
+                                accept="image/*"
+                                onChange={handleFileChange}
                             />
+                            
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                <label style={{ fontSize: '0.875rem', fontWeight: 500 }}>Moldura (Overlay PNG)</label>
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <input 
+                                        type="file" 
+                                        accept="image/png" 
+                                        onChange={handleOverlayFileChange}
+                                        style={{ fontSize: '0.75rem', flex: 1 }}
+                                    />
+                                    {overlayPreview && (
+                                        <button 
+                                            onClick={() => {
+                                                setOverlayFile(null);
+                                                setOverlayPreview(null);
+                                                setConfig(prev => ({ ...prev, removeOverlay: true }));
+                                            }}
+                                            style={{ backgroundColor: '#fee2e2', color: '#ef4444', border: 'none', padding: '0.25rem 0.5rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.7rem' }}
+                                        >
+                                            Remover
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
                         </div>
-                    )}
-                </div>
-            </Card>
+                    </section>
 
-            {/* Editor Mode Toggle */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)', display: 'flex', gap: '1rem' }}>
-                    <span>🖱️ <b>Arraste</b> para mover</span>
-                    <span>📐 <b>Cantos</b> para redimensionar</span>
-                    <span>🔄 <b>Alça superior</b> para girar</span>
-                    <span>🖱️🖱️ <b>Clique duplo</b> p/ selecionar</span>
-                </div>
-                <Button
-                    variant="outline"
-                    onClick={() => setIsAdvancedMode(!isAdvancedMode)}
-                    style={{ gap: '0.5rem' }}
-                >
-                    {isAdvancedMode ? <PenTool size={16} /> : <Wand2 size={16} />}
-                    {isAdvancedMode ? 'Mudar para Editor Simples' : 'Mudar para Editor Avançado'}
-                </Button>
+                    <section style={{ borderTop: '1px solid #f1f5f9', paddingTop: '1.5rem' }}>
+                        <h3 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '1rem', color: '#1e293b' }}>Dimensões (Canvas)</h3>
+                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                            {CANVAS_PRESETS.map((preset) => (
+                                <button
+                                    key={preset.label}
+                                    onClick={() => handleCanvasPreset(preset.label)}
+                                    style={{
+                                        padding: '0.4rem 0.75rem',
+                                        borderRadius: '0.375rem',
+                                        border: '1px solid',
+                                        borderColor: canvasPreset === preset.label ? '#3b82f6' : '#e2e8f0',
+                                        background: canvasPreset === preset.label ? '#eff6ff' : '#fff',
+                                        color: canvasPreset === preset.label ? '#2563eb' : '#64748b',
+                                        cursor: 'pointer',
+                                        fontSize: '0.7rem',
+                                        fontWeight: 500,
+                                    }}
+                                >
+                                    {preset.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        {canvasPreset === 'Personalizado' && (
+                            <div style={{ display: 'flex', gap: '0.75rem' }}>
+                                <Input
+                                    label="W (mm)"
+                                    type="number"
+                                    value={canvasSize.width}
+                                    onChange={(e) => setCanvasSize(s => ({ ...s, width: parseInt(e.target.value) || 0 }))}
+                                />
+                                <Input
+                                    label="H (mm)"
+                                    type="number"
+                                    value={canvasSize.height}
+                                    onChange={(e) => setCanvasSize(s => ({ ...s, height: parseInt(e.target.value) || 0 }))}
+                                />
+                            </div>
+                        )}
+                    </section>
+
+                    <section style={{ borderTop: '1px solid #f1f5f9', paddingTop: '1.5rem' }}>
+                        <h3 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '1rem', color: '#1e293b' }}>Camadas de Texto</h3>
+                        <TextLayerEditor layers={textLayers} onChange={setTextLayers} />
+                    </section>
+                </aside>
+
+                {/* Main Workspace */}
+                <main style={{ 
+                    flex: 1, 
+                    position: 'relative', 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    backgroundColor: '#cbd5e1', // Darker gray for workspace background
+                    overflow: 'hidden'
+                }}>
+                    {/* Command Legend */}
+                    <div style={{ 
+                        position: 'absolute', 
+                        top: '1rem', 
+                        left: '50%', 
+                        transform: 'translateX(-50%)', 
+                        zIndex: 20,
+                        backgroundColor: 'rgba(255,255,255,0.9)',
+                        padding: '0.5rem 1rem',
+                        borderRadius: '99px',
+                        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                        fontSize: '0.7rem',
+                        display: 'flex',
+                        gap: '1rem',
+                        whiteSpace: 'nowrap'
+                    }}>
+                        <span>🖱️ Arraste p/ mover</span>
+                        <span>📐 Cantos p/ escala</span>
+                        <span>🔄 Alça p/ girar</span>
+                        <span>🖱️🖱️ Duplo clique p/ selecionar</span>
+                    </div>
+
+                    <div style={{ 
+                        flex: 1, 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        padding: '2rem',
+                        overflow: 'auto'
+                    }}>
+                        <div style={{ 
+                            boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.25)',
+                            backgroundColor: '#fff',
+                            lineHeight: 0
+                        }}>
+                            {isAdvancedMode ? (
+                                <AdvancedVisualEditor
+                                    imageSrc={imagePreview}
+                                    overlaySrc={overlayPreview}
+                                    initialConfig={config}
+                                    onChange={setConfig}
+                                    canvasSize={canvasSize}
+                                    textLayers={textLayers}
+                                    onTextLayerChange={setTextLayers}
+                                />
+                            ) : (
+                                <VisualEditor
+                                    imageSrc={imagePreview}
+                                    overlaySrc={overlayPreview}
+                                    initialConfig={config}
+                                    onChange={setConfig}
+                                    canvasSize={canvasSize}
+                                />
+                            )}
+                        </div>
+                    </div>
+                </main>
             </div>
-
-            {isAdvancedMode ? (
-                <AdvancedVisualEditor
-                    imageSrc={imagePreview}
-                    overlaySrc={overlayPreview}
-                    initialConfig={config}
-                    onChange={setConfig}
-                    canvasSize={canvasSize}
-                    textLayers={textLayers}
-                    onTextLayerChange={setTextLayers}
-                />
-            ) : (
-                <VisualEditor
-                    imageSrc={imagePreview}
-                    overlaySrc={overlayPreview}
-                    initialConfig={config}
-                    onChange={setConfig}
-                    canvasSize={canvasSize}
-                />
-            )}
-
-            <Card>
-                <TextLayerEditor layers={textLayers} onChange={setTextLayers} />
-            </Card>
-
-            {/* Debug Info */}
-            <Card style={{ backgroundColor: 'var(--muted)', fontSize: '0.75rem', fontFamily: 'monospace' }}>
-                <strong>Configuração (JSON):</strong> {JSON.stringify({ ...config, canvasSize, textLayers }, null, 2)}
-            </Card>
         </div>
     );
 }
