@@ -27,12 +27,14 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
     const aspectRatio = canvasSize ? canvasSize.width / canvasSize.height : 210 / 297;
     const INTERNAL_HEIGHT = INTERNAL_WIDTH / aspectRatio;
 
+    const isPercent = initialConfig?.unit === '%';
+
     // Overlay State
     const [overlay, setOverlay] = useState({
-        x: (initialConfig?.overlayX || 0),
-        y: (initialConfig?.overlayY || 0),
-        width: (initialConfig?.overlayWidth || INTERNAL_WIDTH),
-        height: (initialConfig?.overlayHeight || INTERNAL_HEIGHT),
+        x: isPercent ? (initialConfig.overlayX / 100) * INTERNAL_WIDTH : (initialConfig?.overlayX || 0),
+        y: isPercent ? (initialConfig.overlayY / 100) * INTERNAL_HEIGHT : (initialConfig?.overlayY || 0),
+        width: isPercent ? (initialConfig.overlayWidth / 100) * INTERNAL_WIDTH : (initialConfig?.overlayWidth || INTERNAL_WIDTH),
+        height: isPercent ? (initialConfig.overlayHeight / 100) * INTERNAL_HEIGHT : (initialConfig?.overlayHeight || INTERNAL_HEIGHT),
         rotation: (initialConfig?.overlayRotation || 0),
         id: 'overlay_layer',
         type: 'overlay'
@@ -40,41 +42,16 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
 
     // Photo Placeholder State
     const [placeholder, setPlaceholder] = useState({
-        x: (initialConfig?.x || 0),
-        y: (initialConfig?.y || 0),
-        width: (initialConfig?.width || 0),
-        height: (initialConfig?.height || 0),
-        rotation: 0,
+        x: isPercent ? (initialConfig.x / 100) * INTERNAL_WIDTH : (initialConfig?.x || 50),
+        y: isPercent ? (initialConfig.y / 100) * INTERNAL_HEIGHT : (initialConfig?.y || 50),
+        width: isPercent ? (initialConfig.width / 100) * INTERNAL_WIDTH : (initialConfig?.width || 200),
+        height: isPercent ? (initialConfig.height / 100) * INTERNAL_HEIGHT : (initialConfig?.height || 200),
+        rotation: initialConfig?.rotation || 0,
         id: 'photo_placeholder',
         type: 'placeholder'
     });
 
-    // Normalize initial config from % to Internal PX if needed
-    useEffect(() => {
-        if (initialConfig?.unit === '%') {
-            setPlaceholder({
-                x: (initialConfig.x / 100) * INTERNAL_WIDTH,
-                y: (initialConfig.y / 100) * INTERNAL_HEIGHT,
-                width: (initialConfig.width / 100) * INTERNAL_WIDTH,
-                height: (initialConfig.height / 100) * INTERNAL_HEIGHT,
-                rotation: 0,
-                id: 'photo_placeholder',
-                type: 'placeholder'
-            });
-
-            if (initialConfig.overlayWidth) {
-                setOverlay({
-                    x: (initialConfig.overlayX / 100) * INTERNAL_WIDTH,
-                    y: (initialConfig.overlayY / 100) * INTERNAL_HEIGHT,
-                    width: (initialConfig.overlayWidth / 100) * INTERNAL_WIDTH,
-                    height: (initialConfig.overlayHeight / 100) * INTERNAL_HEIGHT,
-                    rotation: initialConfig.overlayRotation || 0,
-                    id: 'overlay_layer',
-                    type: 'overlay'
-                });
-            }
-        }
-    }, [initialConfig, INTERNAL_HEIGHT]);
+    // Text Layers State
 
     // Text Layers State
     // We need to map parent textLayers to Konva state
