@@ -266,6 +266,7 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
                             draggable
                             onClick={() => handleSelect(`text_${i}`)}
                             onTap={() => handleSelect(`text_${i}`)}
+                            onDblClick={() => handleSelect(`text_${i}`)}
                             onDragEnd={handleDragEnd}
                             onTransformEnd={handleTransformEnd}
                         />
@@ -273,6 +274,11 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
 
                     <Transformer
                         ref={transformerRef}
+                        enabledAnchors={
+                            selectedId?.startsWith('text_') 
+                            ? ['top-left', 'top-right', 'bottom-left', 'bottom-right'] 
+                            : ['top-left', 'top-center', 'top-right', 'middle-right', 'middle-left', 'bottom-left', 'bottom-center', 'bottom-right']
+                        }
                         boundBoxFunc={(oldBox, newBox) => {
                             if (newBox.width < 5 || newBox.height < 5) {
                                 return oldBox;

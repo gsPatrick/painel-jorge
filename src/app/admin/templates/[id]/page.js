@@ -242,14 +242,20 @@ export default function EditTemplatePage() {
             </Card>
 
             {/* Editor Mode Toggle */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ fontSize: '0.85rem', color: 'var(--muted-foreground)', display: 'flex', gap: '1rem' }}>
+                    <span>🖱️ <b>Arraste</b> para mover</span>
+                    <span>📐 <b>Cantos</b> para redimensionar</span>
+                    <span>🔄 <b>Alça superior</b> para girar</span>
+                    <span>🖱️🖱️ <b>Clique duplo</b> p/ selecionar</span>
+                </div>
                 <Button
                     variant="outline"
                     onClick={() => setIsAdvancedMode(!isAdvancedMode)}
                     style={{ gap: '0.5rem' }}
                 >
                     {isAdvancedMode ? <PenTool size={16} /> : <Wand2 size={16} />}
-                    {isAdvancedMode ? 'Usar Editor Simples' : 'Usar Editor Avançado (Beta)'}
+                    {isAdvancedMode ? 'Mudar para Editor Simples' : 'Mudar para Editor Avançado'}
                 </Button>
             </div>
 
