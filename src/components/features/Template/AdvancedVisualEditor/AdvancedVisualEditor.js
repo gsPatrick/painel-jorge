@@ -135,12 +135,12 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
             // Calculations for text are complex because parent expects size in px relative to something?
             // Let's assume parent textLayers are consistent.
 
-            // For now, let's just update position %
+            // For now, let's update position % and size
             newLayers[index] = {
                 ...newLayers[index],
                 x: (newProps.x / INTERNAL_WIDTH) * 100,
                 y: (newProps.y / INTERNAL_HEIGHT) * 100,
-                // Updating size via transform is tricky for text without scale, let's ignore size changes via transform for text for now
+                size: (newLayers[index].size || 14) * scaleX // Update font size based on scale
             };
             onTextLayerChange(newLayers);
         }
