@@ -24,7 +24,9 @@ export default function NewTemplatePage() {
     const router = useRouter();
     const [name, setName] = useState('');
     const [file, setFile] = useState(null);
+    const [overlayFile, setOverlayFile] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
+    const [overlayPreview, setOverlayPreview] = useState(null);
     const [config, setConfig] = useState({ x: 50, y: 50, width: 200, height: 200 });
     const [canvasSize, setCanvasSize] = useState({ width: 210, height: 297 });
     const [canvasPreset, setCanvasPreset] = useState('A4 (210×297mm)');
@@ -38,6 +40,15 @@ export default function NewTemplatePage() {
             setFile(selectedFile);
             const url = URL.createObjectURL(selectedFile);
             setImagePreview(url);
+        }
+    };
+
+    const handleOverlayFileChange = (e) => {
+        const selectedFile = e.target.files[0];
+        if (selectedFile) {
+            setOverlayFile(selectedFile);
+            const url = URL.createObjectURL(selectedFile);
+            setOverlayPreview(url);
         }
     };
 
@@ -57,6 +68,7 @@ export default function NewTemplatePage() {
             const formData = new FormData();
             formData.append('name', name);
             formData.append('file', file);
+            if (overlayFile) formData.append('overlayFile', overlayFile);
             formData.append('configJson', JSON.stringify({
                 ...config,
                 canvasSize,
@@ -139,6 +151,29 @@ export default function NewTemplatePage() {
                                 accept="image/*"
                                 onChange={handleFileChange}
                             />
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                <label style={{ fontSize: '0.875rem', fontWeight: 500 }}>Moldura (PNG Transparente)</label>
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <input 
+                                        type="file" 
+                                        accept="image/png" 
+                                        onChange={handleOverlayFileChange}
+                                        style={{ fontSize: '0.75rem', flex: 1 }}
+                                    />
+                                    {overlayPreview && (
+                                        <button 
+                                            onClick={() => {
+                                                setOverlayFile(null);
+                                                setOverlayPreview(null);
+                                            }}
+                                            style={{ backgroundColor: '#fee2e2', color: '#ef4444', border: 'none', padding: '0.25rem 0.5rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.7rem' }}
+                                        >
+                                            Remover
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     </section>
 
@@ -250,6 +285,7 @@ export default function NewTemplatePage() {
                             {isAdvancedMode ? (
                                 <AdvancedVisualEditor
                                     imageSrc={imagePreview}
+                                    overlaySrc={overlayPreview}
                                     initialConfig={config}
                                     onChange={setConfig}
                                     canvasSize={canvasSize}
@@ -259,6 +295,7 @@ export default function NewTemplatePage() {
                             ) : (
                                 <VisualEditor
                                     imageSrc={imagePreview}
+                                    overlaySrc={overlayPreview}
                                     initialConfig={config}
                                     onChange={setConfig}
                                     canvasSize={canvasSize}
