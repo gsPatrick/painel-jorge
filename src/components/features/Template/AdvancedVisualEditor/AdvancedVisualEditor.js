@@ -154,22 +154,27 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
     useEffect(() => {
         const resize = () => {
             if (containerRef.current) {
-                const parent = containerRef.current.parentElement;
-                if (!parent) return;
+                // Find the main workspace container (the one with the gray background)
+                let parent = containerRef.current.parentElement;
+                while (parent && parent.tagName !== 'MAIN' && !parent.style.backgroundColor.includes('cbd5e1')) {
+                    parent = parent.parentElement;
+                }
                 
-                const padding = 60; // Extra padding
-                const availableWidth = parent.offsetWidth - padding;
-                const availableHeight = parent.offsetHeight - padding;
+                if (!parent) parent = containerRef.current.parentElement;
+                
+                const padding = 80; 
+                const availableWidth = Math.max(300, parent.offsetWidth - padding);
+                const availableHeight = Math.max(300, parent.offsetHeight - padding);
                 
                 const scaleW = availableWidth / INTERNAL_WIDTH;
                 const scaleH = availableHeight / INTERNAL_HEIGHT;
                 
                 // Use the smaller scale to ensure it fits both directions
-                setScale(Math.min(scaleW, scaleH, 1)); 
+                const newScale = Math.min(scaleW, scaleH);
+                setScale(newScale); 
             }
         };
         
-        // Use ResizeObserver for better accuracy in flex layouts
         const observer = new ResizeObserver(resize);
         if (containerRef.current?.parentElement) {
             observer.observe(containerRef.current.parentElement);
@@ -177,40 +182,34 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
         
         resize();
         window.addEventListener('resize', resize);
+        // Initial delay to allow flexbox to settle
+        const timer = setTimeout(resize, 100);
+
         return () => {
             window.removeEventListener('resize', resize);
             observer.disconnect();
+            clearTimeout(timer);
         };
-    }, [INTERNAL_HEIGHT]);
+    }, [INTERNAL_HEIGHT, INTERNAL_WIDTH]);
 
     if (!imageSrc) return <div className={styles.empty}>Selecione uma imagem de fundo primeiro.</div>;
 
     return (
-        <div className={styles.container} ref={containerRef}>
-            <div className={styles.toolbar}>
-                <div className={styles.toolItem} onClick={() => selectShape(null)}>
-                    <MousePointer2 size={18} />
-                    <span>Selecionar</span>
-                </div>
-                {/* Future tools: Add Text, Add Shape */}
-            </div>
-
+        <div className={styles.container} ref={containerRef} style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Stage
                 width={INTERNAL_WIDTH * scale}
                 height={INTERNAL_HEIGHT * scale}
-                scaleX={scale}
-                scaleY={scale}
                 onMouseDown={checkDeselect}
                 onTouchStart={checkDeselect}
                 ref={stageRef}
             >
-                <Layer>
+                <Layer scaleX={scale} scaleY={scale}>
                     {/* Background */}
                     <URLImage
                         src={imageSrc}
                         width={INTERNAL_WIDTH}
                         height={INTERNAL_HEIGHT}
-                        listening={false} // Background not selectable
+                        listening={false} 
                     />
 
                     {/* Photo Placeholder */}
