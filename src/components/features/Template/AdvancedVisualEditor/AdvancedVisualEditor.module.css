@@ -84,14 +84,12 @@
 }
 
 .layerItemLabel {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 600;
-    color: #1e293b;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    color: #0f172a;
     flex: 1;
-    min-width: 0;
+    display: block;
+    line-height: 1.2;
 }
 
 .layerItemActions {
