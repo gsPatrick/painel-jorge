@@ -149,11 +149,10 @@ export default function NewTemplatePage() {
                                 <div className={styles.fieldGroup}>
                                     <label className={styles.fieldLabel}>Moldura (PNG Transparente)</label>
                                     <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                                        <input
+                                        <Input
                                             type="file"
                                             accept="image/png"
                                             onChange={handleOverlayFileChange}
-                                            style={{ fontSize: '0.75rem', flex: 1, minWidth: 0 }}
                                         />
                                         {overlayPreview && (
                                             <button

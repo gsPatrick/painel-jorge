@@ -27,7 +27,28 @@
 .input:focus {
     outline: none;
     border-color: var(--ring);
-    /* box-shadow: 0 0 0 1px var(--ring); - Optional: minimalist focus */
+}
+
+.input[type="file"] {
+    padding: 0.35rem 0.5rem;
+    cursor: pointer;
+}
+
+.input[type="file"]::file-selector-button {
+    border: 1px solid var(--border);
+    background: #f1f5f9;
+    color: #334155;
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.25rem;
+    margin-right: 0.75rem;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.75rem;
+    transition: all 0.2s;
+}
+
+.input[type="file"]::file-selector-button:hover {
+    background: #e2e8f0;
 }
 
 .input::placeholder {

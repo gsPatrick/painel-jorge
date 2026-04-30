@@ -46,13 +46,9 @@ export default function TextLayerEditor({ layers = [], onChange }) {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>
-                    <Type size={16} style={{ display: 'inline', marginRight: '0.5rem', verticalAlign: 'middle' }} />
-                    Camadas de Texto
-                </h3>
-                <Button variant="outline" size="sm" onClick={addLayer}>
-                    <Plus size={14} style={{ marginRight: '0.25rem' }} />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                <Button variant="outline" size="sm" onClick={addLayer} style={{ width: '100%' }}>
+                    <Plus size={14} style={{ marginRight: '0.5rem' }} />
                     Adicionar Texto
                 </Button>
             </div>

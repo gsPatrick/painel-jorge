@@ -182,11 +182,14 @@
     gap: 1rem;
     min-height: 300px;
     justify-content: center;
+    line-height: normal;
 }
 
 .empty p {
     font-size: 0.875rem;
     max-width: 250px;
+    line-height: 1.4;
+    margin: 0;
 }
 
 /* ========== MOBILE ========== */
