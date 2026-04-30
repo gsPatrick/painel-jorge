@@ -8,7 +8,7 @@ import Card from '@/components/ui/Card/Card';
 import AdvancedVisualEditor from '@/components/features/Template/AdvancedVisualEditor/AdvancedVisualEditor';
 import TextLayerEditor from '@/components/features/Template/TextLayerEditor/TextLayerEditor';
 import templateService from '@/services/template.service';
-import { Save, ArrowLeft, MousePointer2, Maximize, RotateCw, Layers, Loader2 } from 'lucide-react';
+import { Save, ArrowLeft, MousePointer2, Maximize, RotateCw, Layers, Loader2, MonitorSmartphone } from 'lucide-react';
 import Link from 'next/link';
 import api from '@/services/api';
 import styles from './edit.module.css';
@@ -38,6 +38,7 @@ export default function EditTemplatePage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [showMobileWarning, setShowMobileWarning] = useState(false);
 
     // Auto-collapse sidebar on mobile
     useEffect(() => {
@@ -48,6 +49,11 @@ export default function EditTemplatePage() {
         };
         checkWidth();
         window.addEventListener('resize', checkWidth);
+
+        if (window.innerWidth <= 768) {
+            setShowMobileWarning(true);
+        }
+
         return () => window.removeEventListener('resize', checkWidth);
     }, []);
 
@@ -153,6 +159,25 @@ export default function EditTemplatePage() {
 
     return (
         <div className={styles.editorRoot}>
+            {/* Mobile Warning Modal */}
+            {showMobileWarning && (
+                <div className="modal-backdrop" style={{ zIndex: 9999 }}>
+                    <Card style={{ maxWidth: '400px', margin: '1rem', textAlign: 'center', padding: '2rem' }}>
+                        <div style={{ color: '#f59e0b', marginBottom: '1rem' }}>
+                            <MonitorSmartphone size={48} style={{ margin: '0 auto' }} />
+                        </div>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--foreground)' }}>Aviso de Resolução</h2>
+                        <p style={{ color: 'var(--muted-foreground)', fontSize: '0.875rem', marginBottom: '1.5rem', lineHeight: 1.5 }}>
+                            A edição de templates exige alta precisão em milímetros. Recomendamos fortemente o uso de um computador ou tela maior para uma melhor experiência.
+                        </p>
+                        <div style={{ display: 'flex', gap: '0.75rem', flexDirection: 'column' }}>
+                            <Button onClick={() => setShowMobileWarning(false)}>Entendi, continuar mesmo assim</Button>
+                            <Button variant="outline" onClick={() => router.push('/admin/templates')}>Voltar para lista</Button>
+                        </div>
+                    </Card>
+                </div>
+            )}
+
             {/* Header */}
             <header className={styles.editorHeader}>
                 <div className={styles.headerLeft}>

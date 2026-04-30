@@ -281,14 +281,31 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
     const renderLayerItem = (id) => {
         let label = '';
         let isText = false;
+        let isBg = false;
         
-        if (id === 'photo_placeholder') label = '🖼️ Área da Foto';
-        else if (id === 'overlay_layer') label = '🎭 Moldura (Overlay)';
-        else if (id.startsWith('text_')) {
+        if (id === 'background_layer') {
+            label = '🖼️ Imagem de Fundo (Fixa)';
+            isBg = true;
+        } else if (id === 'photo_placeholder') {
+            label = '📸 Área da Foto';
+        } else if (id === 'overlay_layer') {
+            label = '✨ Moldura (PNG Transparente)';
+        } else if (id.startsWith('text_')) {
             const index = parseInt(id.replace('text_', ''));
             label = `📝 ${textLayers[index]?.content?.slice(0, 12) || 'Texto'}`;
             isText = true;
         } else return null;
+
+        if (isBg) {
+            return (
+                <div key={id} className={styles.layerItem} style={{ opacity: 0.6, cursor: 'not-allowed' }} title="A imagem de fundo é o tamanho base e não pode ser movida">
+                    <span className={styles.layerItemLabel}>{label}</span>
+                    <div className={styles.layerItemActions}>
+                        <Lock size={11} />
+                    </div>
+                </div>
+            );
+        }
 
         return (
             <div
@@ -330,6 +347,7 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
                 {/* Reverse rendering so visual top layer is at the top of the list */}
                 <div className={styles.layerList}>
                     {[...layersOrder].reverse().map(renderLayerItem)}
+                    {renderLayerItem('background_layer')}
                 </div>
             </div>
 
