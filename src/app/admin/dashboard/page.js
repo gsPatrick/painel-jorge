@@ -118,7 +118,7 @@ export default function DashboardPage() {
 
 function StatsCard({ title, value, icon, desc, loading }) {
     return (
-        <Card>
+        <Card hoverable>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
                 <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--muted-foreground)' }}>{title}</span>
                 <div style={{ padding: '0.5rem', borderRadius: '8px', backgroundColor: 'var(--background)' }}>

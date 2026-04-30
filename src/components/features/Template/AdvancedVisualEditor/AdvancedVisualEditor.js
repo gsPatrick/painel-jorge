@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Stage, Layer, Image as KonvaImage, Rect, Text, Transformer, Group } from 'react-konva';
 import useImage from 'use-image';
-import { ZoomIn, ZoomOut, RotateCcw, Lock, Unlock, Eye, EyeOff, Layers, Move } from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCcw, Lock, Unlock, Eye, EyeOff, Layers, Move, ArrowUp, ArrowDown } from 'lucide-react';
 import styles from './AdvancedVisualEditor.module.css';
 
 const URLImage = ({ src, ...props }) => {
@@ -11,7 +11,7 @@ const URLImage = ({ src, ...props }) => {
     return <KonvaImage image={image} {...props} />;
 };
 
-export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConfig, onChange, textLayers, onTextLayerChange, canvasSize }) {
+export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConfig, onChange, textLayers = [], onTextLayerChange, canvasSize }) {
     const [selectedId, selectShape] = useState(null);
     const stageRef = useRef(null);
     const transformerRef = useRef(null);
@@ -26,6 +26,40 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
         photo_placeholder: { visible: true, locked: false },
         overlay_layer: { visible: true, locked: false },
     });
+
+    // Z-Index Order Manager
+    const [layersOrder, setLayersOrder] = useState([]);
+
+    useEffect(() => {
+        setLayersOrder(prev => {
+            let newOrder = [...prev];
+            
+            if (!newOrder.includes('photo_placeholder')) newOrder.push('photo_placeholder');
+            
+            if (overlaySrc && !newOrder.includes('overlay_layer')) {
+                newOrder.push('overlay_layer');
+            } else if (!overlaySrc && newOrder.includes('overlay_layer')) {
+                newOrder = newOrder.filter(id => id !== 'overlay_layer');
+            }
+            
+            // Sync text layers
+            textLayers.forEach((_, i) => {
+                const id = `text_${i}`;
+                if (!newOrder.includes(id)) newOrder.push(id);
+            });
+            
+            // Remove deleted text layers
+            newOrder = newOrder.filter(id => {
+                if (id.startsWith('text_')) {
+                    const index = parseInt(id.replace('text_', ''));
+                    return index < textLayers.length;
+                }
+                return true;
+            });
+            
+            return newOrder;
+        });
+    }, [overlaySrc, textLayers.length]);
 
     // Canvas dimensions
     const INTERNAL_WIDTH = 1000;
@@ -133,13 +167,15 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
         } else if (nodeId.startsWith('text_')) {
             const index = parseInt(nodeId.replace('text_', ''));
             const newLayers = [...textLayers];
-            newLayers[index] = {
-                ...newLayers[index],
-                x: (newProps.x / INTERNAL_WIDTH) * 100,
-                y: (newProps.y / INTERNAL_HEIGHT) * 100,
-                size: Math.round((newLayers[index].size || 14) * scaleX)
-            };
-            onTextLayerChange(newLayers);
+            if (newLayers[index]) {
+                newLayers[index] = {
+                    ...newLayers[index],
+                    x: (newProps.x / INTERNAL_WIDTH) * 100,
+                    y: (newProps.y / INTERNAL_HEIGHT) * 100,
+                    size: Math.round((newLayers[index].size || 14) * scaleX)
+                };
+                onTextLayerChange(newLayers);
+            }
         }
     };
 
@@ -159,6 +195,28 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
         if (prop === 'locked' && selectedId === layerId) {
             selectShape(null);
         }
+    };
+
+    const moveLayer = (layerId, direction) => {
+        setLayersOrder(prev => {
+            const idx = prev.indexOf(layerId);
+            if (idx < 0) return prev;
+            
+            const newOrder = [...prev];
+            if (direction === 'up' && idx < prev.length - 1) { // Visual 'up' is higher index in Konva
+                [newOrder[idx], newOrder[idx + 1]] = [newOrder[idx + 1], newOrder[idx]];
+            } else if (direction === 'down' && idx > 0) { // Visual 'down' is lower index in Konva
+                [newOrder[idx], newOrder[idx - 1]] = [newOrder[idx - 1], newOrder[idx]];
+            }
+            return newOrder;
+        });
+        
+        // Re-trigger transformer redraw so the bounding box updates visually
+        setTimeout(() => {
+            if (transformerRef.current) {
+                transformerRef.current.getLayer()?.batchDraw();
+            }
+        }, 50);
     };
 
     // Responsive Stage
@@ -219,59 +277,60 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
         );
     }
 
+    // Helper to render layer items in panel
+    const renderLayerItem = (id) => {
+        let label = '';
+        let isText = false;
+        
+        if (id === 'photo_placeholder') label = '🖼️ Área da Foto';
+        else if (id === 'overlay_layer') label = '🎭 Moldura (Overlay)';
+        else if (id.startsWith('text_')) {
+            const index = parseInt(id.replace('text_', ''));
+            label = `📝 ${textLayers[index]?.content?.slice(0, 12) || 'Texto'}`;
+            isText = true;
+        } else return null;
+
+        return (
+            <div
+                key={id}
+                className={`${styles.layerItem} ${selectedId === id ? styles.layerItemActive : ''}`}
+                onClick={() => handleSelect(id)}
+            >
+                <span className={styles.layerItemLabel}>{label}</span>
+                <div className={styles.layerItemActions}>
+                    <button onClick={(e) => { e.stopPropagation(); moveLayer(id, 'up'); }} title="Trazer para frente">
+                        <ArrowUp size={11} />
+                    </button>
+                    <button onClick={(e) => { e.stopPropagation(); moveLayer(id, 'down'); }} title="Enviar para trás">
+                        <ArrowDown size={11} />
+                    </button>
+                    {!isText && (
+                        <>
+                            <button onClick={(e) => { e.stopPropagation(); toggleLayerProp(id, 'locked'); }} title={layerState[id]?.locked ? 'Desbloquear' : 'Bloquear'}>
+                                {layerState[id]?.locked ? <Lock size={11} /> : <Unlock size={11} />}
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); toggleLayerProp(id, 'visible'); }} title={layerState[id]?.visible !== false ? 'Ocultar' : 'Mostrar'}>
+                                {layerState[id]?.visible !== false ? <Eye size={11} /> : <EyeOff size={11} />}
+                            </button>
+                        </>
+                    )}
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div className={styles.container} ref={containerRef}>
             {/* Layer Panel */}
             <div className={styles.layerPanel}>
                 <div className={styles.layerPanelTitle}>
                     <Layers size={12} />
-                    Camadas
+                    Ordem das Camadas
                 </div>
-
-                {/* Photo Layer */}
-                <div
-                    className={`${styles.layerItem} ${selectedId === 'photo_placeholder' ? styles.layerItemActive : ''}`}
-                    onClick={() => handleSelect('photo_placeholder')}
-                >
-                    <span className={styles.layerItemLabel}>🖼️ Área da Foto</span>
-                    <div className={styles.layerItemActions}>
-                        <button onClick={(e) => { e.stopPropagation(); toggleLayerProp('photo_placeholder', 'locked'); }} title={layerState.photo_placeholder?.locked ? 'Desbloquear' : 'Bloquear'}>
-                            {layerState.photo_placeholder?.locked ? <Lock size={11} /> : <Unlock size={11} />}
-                        </button>
-                        <button onClick={(e) => { e.stopPropagation(); toggleLayerProp('photo_placeholder', 'visible'); }} title={layerState.photo_placeholder?.visible !== false ? 'Ocultar' : 'Mostrar'}>
-                            {layerState.photo_placeholder?.visible !== false ? <Eye size={11} /> : <EyeOff size={11} />}
-                        </button>
-                    </div>
+                {/* Reverse rendering so visual top layer is at the top of the list */}
+                <div className={styles.layerList}>
+                    {[...layersOrder].reverse().map(renderLayerItem)}
                 </div>
-
-                {/* Overlay Layer */}
-                {overlaySrc && (
-                    <div
-                        className={`${styles.layerItem} ${selectedId === 'overlay_layer' ? styles.layerItemActive : ''}`}
-                        onClick={() => handleSelect('overlay_layer')}
-                    >
-                        <span className={styles.layerItemLabel}>🎭 Moldura</span>
-                        <div className={styles.layerItemActions}>
-                            <button onClick={(e) => { e.stopPropagation(); toggleLayerProp('overlay_layer', 'locked'); }} title={layerState.overlay_layer?.locked ? 'Desbloquear' : 'Bloquear'}>
-                                {layerState.overlay_layer?.locked ? <Lock size={11} /> : <Unlock size={11} />}
-                            </button>
-                            <button onClick={(e) => { e.stopPropagation(); toggleLayerProp('overlay_layer', 'visible'); }} title={layerState.overlay_layer?.visible !== false ? 'Ocultar' : 'Mostrar'}>
-                                {layerState.overlay_layer?.visible !== false ? <Eye size={11} /> : <EyeOff size={11} />}
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-                {/* Text Layers */}
-                {textLayers.map((layer, i) => (
-                    <div
-                        key={i}
-                        className={`${styles.layerItem} ${selectedId === `text_${i}` ? styles.layerItemActive : ''}`}
-                        onClick={() => handleSelect(`text_${i}`)}
-                    >
-                        <span className={styles.layerItemLabel}>📝 {layer.content?.slice(0, 12) || 'Texto'}</span>
-                    </div>
-                ))}
             </div>
 
             {/* Zoom Controls */}
@@ -293,7 +352,7 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
                     ref={stageRef}
                 >
                     <Layer scaleX={effectiveScale} scaleY={effectiveScale}>
-                        {/* Background */}
+                        {/* Background always at the very bottom */}
                         <URLImage
                             src={imageSrc}
                             width={INTERNAL_WIDTH}
@@ -301,96 +360,109 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
                             listening={false}
                         />
 
-                        {/* Photo Placeholder */}
-                        {layerState.photo_placeholder?.visible !== false && (
-                            <Group
-                                x={placeholder.x}
-                                y={placeholder.y}
-                                width={placeholder.width}
-                                height={placeholder.height}
-                                rotation={placeholder.rotation}
-                                draggable={!layerState.photo_placeholder?.locked}
-                                id="photo_placeholder"
-                                name="photo_placeholder"
-                                onDragEnd={handleDragEnd}
-                                onTransformEnd={handleTransformEnd}
-                                onClick={() => handleSelect('photo_placeholder')}
-                                onTap={() => handleSelect('photo_placeholder')}
-                            >
-                                <Rect
-                                    width={placeholder.width}
-                                    height={placeholder.height}
-                                    fill="rgba(59, 130, 246, 0.15)"
-                                    stroke={selectedId === 'photo_placeholder' ? '#3b82f6' : 'rgba(255,255,255,0.8)'}
-                                    strokeWidth={selectedId === 'photo_placeholder' ? 2.5 : 1.5}
-                                    dash={selectedId === 'photo_placeholder' ? [] : [8, 4]}
-                                    cornerRadius={2}
-                                />
-                                <Text
-                                    text="📷 Área da Foto"
-                                    width={placeholder.width}
-                                    height={placeholder.height}
-                                    align="center"
-                                    verticalAlign="middle"
-                                    fontFamily="sans-serif"
-                                    fontSize={Math.min(18, placeholder.width / 10)}
-                                    fill="rgba(255,255,255,0.9)"
-                                />
-                            </Group>
-                        )}
+                        {/* Render shapes in order of z-index array */}
+                        {layersOrder.map(layerId => {
+                            if (layerId === 'photo_placeholder' && layerState.photo_placeholder?.visible !== false) {
+                                return (
+                                    <Group
+                                        key={layerId}
+                                        x={placeholder.x}
+                                        y={placeholder.y}
+                                        width={placeholder.width}
+                                        height={placeholder.height}
+                                        rotation={placeholder.rotation}
+                                        draggable={!layerState.photo_placeholder?.locked}
+                                        id="photo_placeholder"
+                                        name="photo_placeholder"
+                                        onDragEnd={handleDragEnd}
+                                        onTransformEnd={handleTransformEnd}
+                                        onClick={() => handleSelect('photo_placeholder')}
+                                        onTap={() => handleSelect('photo_placeholder')}
+                                    >
+                                        <Rect
+                                            width={placeholder.width}
+                                            height={placeholder.height}
+                                            fill="rgba(59, 130, 246, 0.15)"
+                                            stroke={selectedId === 'photo_placeholder' ? '#3b82f6' : 'rgba(255,255,255,0.8)'}
+                                            strokeWidth={selectedId === 'photo_placeholder' ? 2.5 : 1.5}
+                                            dash={selectedId === 'photo_placeholder' ? [] : [8, 4]}
+                                            cornerRadius={2}
+                                        />
+                                        <Text
+                                            text="📷 Área da Foto"
+                                            width={placeholder.width}
+                                            height={placeholder.height}
+                                            align="center"
+                                            verticalAlign="middle"
+                                            fontFamily="sans-serif"
+                                            fontSize={Math.min(18, placeholder.width / 10)}
+                                            fill="rgba(255,255,255,0.9)"
+                                        />
+                                    </Group>
+                                );
+                            }
 
-                        {/* Overlay / Frame Layer */}
-                        {overlaySrc && layerState.overlay_layer?.visible !== false && (
-                            <Group
-                                x={overlay.x}
-                                y={overlay.y}
-                                width={overlay.width}
-                                height={overlay.height}
-                                rotation={overlay.rotation}
-                                draggable={!layerState.overlay_layer?.locked}
-                                id="overlay_layer"
-                                name="overlay_layer"
-                                onDragEnd={handleDragEnd}
-                                onTransformEnd={handleTransformEnd}
-                                onClick={() => handleSelect('overlay_layer')}
-                                onTap={() => handleSelect('overlay_layer')}
-                            >
-                                <URLImage
-                                    src={overlaySrc}
-                                    width={overlay.width}
-                                    height={overlay.height}
-                                />
-                                {selectedId === 'overlay_layer' && (
-                                    <Rect
+                            if (layerId === 'overlay_layer' && overlaySrc && layerState.overlay_layer?.visible !== false) {
+                                return (
+                                    <Group
+                                        key={layerId}
+                                        x={overlay.x}
+                                        y={overlay.y}
                                         width={overlay.width}
                                         height={overlay.height}
-                                        stroke="#8b5cf6"
-                                        strokeWidth={2}
-                                        fill="transparent"
-                                        listening={false}
-                                    />
-                                )}
-                            </Group>
-                        )}
+                                        rotation={overlay.rotation}
+                                        draggable={!layerState.overlay_layer?.locked}
+                                        id="overlay_layer"
+                                        name="overlay_layer"
+                                        onDragEnd={handleDragEnd}
+                                        onTransformEnd={handleTransformEnd}
+                                        onClick={() => handleSelect('overlay_layer')}
+                                        onTap={() => handleSelect('overlay_layer')}
+                                    >
+                                        <URLImage
+                                            src={overlaySrc}
+                                            width={overlay.width}
+                                            height={overlay.height}
+                                        />
+                                        {selectedId === 'overlay_layer' && (
+                                            <Rect
+                                                width={overlay.width}
+                                                height={overlay.height}
+                                                stroke="#8b5cf6"
+                                                strokeWidth={2}
+                                                fill="transparent"
+                                                listening={false}
+                                            />
+                                        )}
+                                    </Group>
+                                );
+                            }
 
-                        {/* Text Layers */}
-                        {textLayers.map((layer, i) => (
-                            <Text
-                                key={i}
-                                name={`text_${i}`}
-                                id={`text_${i}`}
-                                x={(layer.x / 100) * INTERNAL_WIDTH}
-                                y={(layer.y / 100) * INTERNAL_HEIGHT}
-                                text={layer.content || "Texto"}
-                                fontSize={layer.size * 2}
-                                fill={layer.color}
-                                draggable
-                                onClick={() => handleSelect(`text_${i}`)}
-                                onTap={() => handleSelect(`text_${i}`)}
-                                onDragEnd={handleDragEnd}
-                                onTransformEnd={handleTransformEnd}
-                            />
-                        ))}
+                            if (layerId.startsWith('text_')) {
+                                const i = parseInt(layerId.replace('text_', ''));
+                                const layer = textLayers[i];
+                                if (!layer) return null;
+                                return (
+                                    <Text
+                                        key={layerId}
+                                        name={`text_${i}`}
+                                        id={`text_${i}`}
+                                        x={(layer.x / 100) * INTERNAL_WIDTH}
+                                        y={(layer.y / 100) * INTERNAL_HEIGHT}
+                                        text={layer.content || "Texto"}
+                                        fontSize={layer.size * 2}
+                                        fill={layer.color}
+                                        draggable
+                                        onClick={() => handleSelect(`text_${i}`)}
+                                        onTap={() => handleSelect(`text_${i}`)}
+                                        onDragEnd={handleDragEnd}
+                                        onTransformEnd={handleTransformEnd}
+                                    />
+                                );
+                            }
+
+                            return null;
+                        })}
 
                         <Transformer
                             ref={transformerRef}

@@ -1,8 +1,8 @@
 :root {
   /* Light Mode Palette - Professional & Clean */
-  --background: #ffffff;
-  /* White background */
-  --foreground: #09090b;
+  --background: #f8fafc;
+  /* Very light blue/gray background for contrast */
+  --foreground: #0f172a;
   /* Very dark gray text */
 
   --card: #ffffff;

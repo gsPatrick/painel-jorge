@@ -152,7 +152,7 @@ function TemplateCard({ template, onDelete, onDuplicate, onTest, onToggleStatus 
     const [imgError, setImgError] = useState(false);
 
     return (
-        <Card style={{ padding: 0, overflow: 'hidden', position: 'relative', opacity: template.isActive ? 1 : 0.7 }}>
+        <Card hoverable style={{ padding: 0, overflow: 'hidden', position: 'relative', opacity: template.isActive ? 1 : 0.7 }}>
             {/* Status Badge */}
             {!template.isActive && (
                 <div style={{
