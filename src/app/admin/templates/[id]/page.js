@@ -134,9 +134,10 @@ export default function EditTemplatePage() {
         <div style={{ 
             display: 'flex', 
             flexDirection: 'column', 
-            height: 'calc(100vh - 40px)', 
-            margin: '-20px', // Offset default padding if any
-            backgroundColor: '#f1f5f9'
+            minHeight: '100vh', // Use minHeight instead of fixed height
+            margin: '-20px', 
+            backgroundColor: '#f1f5f9',
+            overflowY: 'auto' // Allow vertical scroll for the whole page if needed
         }}>
             {/* Sticky Header */}
             <header style={{ 
@@ -172,7 +173,6 @@ export default function EditTemplatePage() {
             <div style={{ 
                 display: 'flex', 
                 flex: 1, 
-                overflow: 'hidden', 
                 flexDirection: 'row',
                 flexWrap: 'wrap'
             }}>

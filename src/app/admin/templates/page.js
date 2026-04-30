@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Button from '@/components/ui/Button/Button';
 import Card from '@/components/ui/Card/Card';
 import templateService from '@/services/template.service';
-import { Plus, Image as ImageIcon, Trash2, HelpCircle, Download, Edit, Play } from 'lucide-react';
+import { Plus, Image as ImageIcon, Trash2, HelpCircle, Download, Edit, Play, Copy } from 'lucide-react';
 import TemplateTestModal from './TemplateTestModal';
 
 export default function TemplatesPage() {
@@ -35,6 +35,15 @@ export default function TemplatesPage() {
             fetchTemplates();
         } catch (error) {
             alert('Erro ao excluir template');
+        }
+    };
+
+    const handleDuplicate = async (id) => {
+        try {
+            await templateService.duplicateTemplate(id);
+            fetchTemplates();
+        } catch (error) {
+            alert('Erro ao duplicar template');
         }
     };
 
@@ -92,6 +101,7 @@ export default function TemplatesPage() {
                             key={template.id}
                             template={template}
                             onDelete={handleDelete}
+                            onDuplicate={handleDuplicate}
                             onTest={setTestingTemplate}
                         />
                     ))}
@@ -108,7 +118,7 @@ export default function TemplatesPage() {
     );
 }
 
-function TemplateCard({ template, onDelete, onTest }) {
+function TemplateCard({ template, onDelete, onDuplicate, onTest }) {
     const [imgError, setImgError] = useState(false);
 
     return (
@@ -135,17 +145,20 @@ function TemplateCard({ template, onDelete, onTest }) {
                         {template.isActive ? 'Ativo' : 'Inativo'}
                     </p>
                 </div>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <Button variant="outline" size="sm" style={{ padding: '0.5rem' }} title="Testar" onClick={() => onTest(template)}>
-                        <Play size={16} />
+                <div style={{ display: 'flex', gap: '0.35rem' }}>
+                    <Button variant="outline" size="sm" style={{ padding: '0.4rem' }} title="Testar" onClick={() => onTest(template)}>
+                        <Play size={14} />
+                    </Button>
+                    <Button variant="outline" size="sm" style={{ padding: '0.4rem' }} title="Duplicar" onClick={() => onDuplicate(template.id)}>
+                        <Copy size={14} />
                     </Button>
                     <Link href={`/admin/templates/${template.id}`}>
-                        <Button variant="ghost" size="sm" style={{ padding: '0.5rem' }} title="Editar">
-                            <Edit size={16} />
+                        <Button variant="ghost" size="sm" style={{ padding: '0.4rem' }} title="Editar">
+                            <Edit size={14} />
                         </Button>
                     </Link>
-                    <Button variant="destructive" size="sm" onClick={() => onDelete(template.id)} style={{ padding: '0.5rem' }} title="Excluir">
-                        <Trash2 size={16} />
+                    <Button variant="destructive" size="sm" onClick={() => onDelete(template.id)} style={{ padding: '0.4rem' }} title="Excluir">
+                        <Trash2 size={14} />
                     </Button>
                 </div>
             </div>

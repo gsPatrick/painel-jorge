@@ -89,9 +89,10 @@ export default function NewTemplatePage() {
         <div style={{ 
             display: 'flex', 
             flexDirection: 'column', 
-            height: 'calc(100vh - 40px)', 
+            minHeight: '100vh', 
             margin: '-20px', 
-            backgroundColor: '#f1f5f9'
+            backgroundColor: '#f1f5f9',
+            overflowY: 'auto'
         }}>
             {/* Professional Header */}
             <header style={{ 
@@ -124,7 +125,7 @@ export default function NewTemplatePage() {
                 </div>
             </header>
 
-            <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+            <div style={{ display: 'flex', flex: 1 }}>
                 {/* Sidebar */}
                 <aside style={{ 
                     width: '350px', 

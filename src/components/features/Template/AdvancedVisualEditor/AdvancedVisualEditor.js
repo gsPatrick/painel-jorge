@@ -100,9 +100,9 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
             const updated = { ...placeholder, ...newProps };
             setPlaceholder(updated);
 
-            // Convert back to % for parent
             if (onChange) {
                 onChange({
+                    ...initialConfig,
                     x: (updated.x / INTERNAL_WIDTH) * 100,
                     y: (updated.y / INTERNAL_HEIGHT) * 100,
                     width: (updated.width / INTERNAL_WIDTH) * 100,
@@ -192,17 +192,68 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
         };
     }, [INTERNAL_HEIGHT, INTERNAL_WIDTH]);
 
-    if (!imageSrc) return <div className={styles.empty}>Selecione uma imagem de fundo primeiro.</div>;
-
     return (
-        <div className={styles.container} ref={containerRef} style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Stage
-                width={INTERNAL_WIDTH * scale}
-                height={INTERNAL_HEIGHT * scale}
-                onMouseDown={checkDeselect}
-                onTouchStart={checkDeselect}
-                ref={stageRef}
-            >
+        <div className={styles.container} ref={containerRef} style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+            {/* Layer Selector Overlay */}
+            <div style={{ 
+                position: 'absolute', 
+                bottom: '1.5rem', 
+                left: '1.5rem', 
+                zIndex: 30,
+                backgroundColor: 'rgba(255,255,255,0.95)',
+                padding: '0.4rem',
+                borderRadius: '0.75rem',
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.25rem',
+                border: '1px solid #e2e8f0'
+            }}>
+                <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748b', padding: '0.2rem 0.5rem', textTransform: 'uppercase' }}>Camadas</span>
+                <button 
+                    onClick={() => handleSelect('photo_placeholder')}
+                    style={{
+                        padding: '0.5rem 1rem',
+                        borderRadius: '0.5rem',
+                        border: 'none',
+                        backgroundColor: selectedId === 'photo_placeholder' ? '#3b82f6' : 'transparent',
+                        color: selectedId === 'photo_placeholder' ? '#fff' : '#1e293b',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        textAlign: 'left'
+                    }}
+                >
+                    🖼️ Área da Foto
+                </button>
+                {overlaySrc && (
+                    <button 
+                        onClick={() => handleSelect('overlay_layer')}
+                        style={{
+                            padding: '0.5rem 1rem',
+                            borderRadius: '0.5rem',
+                            border: 'none',
+                            backgroundColor: selectedId === 'overlay_layer' ? '#3b82f6' : 'transparent',
+                            color: selectedId === 'overlay_layer' ? '#fff' : '#1e293b',
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            textAlign: 'left'
+                        }}
+                    >
+                        🎭 Moldura (PNG)
+                    </button>
+                )}
+            </div>
+
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Stage
+                    width={INTERNAL_WIDTH * scale}
+                    height={INTERNAL_HEIGHT * scale}
+                    onMouseDown={checkDeselect}
+                    onTouchStart={checkDeselect}
+                    ref={stageRef}
+                >
                 <Layer scaleX={scale} scaleY={scale}>
                     {/* Background */}
                     <URLImage

@@ -38,12 +38,18 @@ const deleteTemplate = async (id) => {
     return response.data;
 };
 
+const duplicateTemplate = async (id) => {
+    const response = await api.post(`/templates/${id}/duplicate`);
+    return response.data;
+};
+
 const templateService = {
     uploadTemplate,
     getActiveTemplates,
     getTemplateById,
     updateTemplate,
     deleteTemplate,
+    duplicateTemplate,
 };
 
 export default templateService;
