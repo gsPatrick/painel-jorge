@@ -24,5 +24,77 @@
 }
 
 .table tr:hover td {
-    background-color: rgba(255, 255, 255, 0.02);
+    background-color: rgba(0, 0, 0, 0.01);
+}
+
+.tableWrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ========== TABLET ========== */
+@media (max-width: 1024px) {
+    .table th,
+    .table td {
+        padding: 0.75rem 1rem;
+    }
+}
+
+/* ========== MOBILE — Card-style rows ========== */
+@media (max-width: 640px) {
+    .table thead {
+        display: none;
+    }
+
+    .table,
+    .table tbody,
+    .table tr,
+    .table td {
+        display: block;
+        width: 100%;
+    }
+
+    .table tr {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border);
+        position: relative;
+    }
+
+    .table td {
+        padding: 0.25rem 0;
+        border-bottom: none;
+        font-size: 0.875rem;
+    }
+
+    .table td:before {
+        font-weight: 600;
+        font-size: 0.7rem;
+        color: var(--muted-foreground);
+        text-transform: uppercase;
+        display: block;
+        margin-bottom: 0.15rem;
+    }
+
+    .table td:nth-child(1):before {
+        content: "Usuário";
+    }
+
+    .table td:nth-child(2):before {
+        content: "Status";
+    }
+
+    .table td:nth-child(3):before {
+        content: "Templates";
+    }
+
+    .table td:nth-child(4) {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-start;
+        padding-top: 0.5rem;
+    }
+
+    .table td:nth-child(4):before {
+        content: "";
+    }
 }

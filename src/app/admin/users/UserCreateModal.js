@@ -26,11 +26,8 @@ export default function UserCreateModal({ onClose, onSave }) {
     };
 
     return (
-        <div style={{
-            position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50
-        }}>
-            <Card style={{ width: '100%', maxWidth: '400px' }}>
+        <div className="modal-backdrop">
+            <Card style={{ width: '100%', maxWidth: '400px', maxHeight: '90vh', maxHeight: '90dvh', overflowY: 'auto' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
                     <h3 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Novo Fotógrafo</h3>
                     <button onClick={onClose} style={{ border: 'none', background: 'none', cursor: 'pointer' }}><X /></button>

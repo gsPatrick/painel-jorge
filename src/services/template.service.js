@@ -15,9 +15,10 @@ const getActiveTemplates = async () => {
     return response.data;
 };
 
-// Admin list might need a different endpoint if we implement "getAll" vs "getActive"
-// For now using getActive as per MVP API structure, or we can add getAll to API if needed.
-// Assuming getActive is enough for now or we add an admin endpoint later.
+const getAllTemplates = async () => {
+    const response = await api.get('/templates');
+    return response.data;
+};
 
 const getTemplateById = async (id) => {
     const response = await api.get(`/templates/${id}`);
@@ -43,13 +44,20 @@ const duplicateTemplate = async (id) => {
     return response.data;
 };
 
+const toggleTemplateStatus = async (id, isActive) => {
+    const response = await api.put(`/templates/${id}/status`, { isActive });
+    return response.data;
+};
+
 const templateService = {
     uploadTemplate,
     getActiveTemplates,
+    getAllTemplates,
     getTemplateById,
     updateTemplate,
     deleteTemplate,
     duplicateTemplate,
+    toggleTemplateStatus,
 };
 
 export default templateService;

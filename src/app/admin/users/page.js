@@ -66,7 +66,7 @@ export default function UsersPage() {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                 <div>
                     <h1 style={{ fontSize: '1.875rem', fontWeight: 700, marginBottom: '0.5rem' }}>Fotógrafos</h1>
                     <p style={{ color: 'var(--muted-foreground)' }}>Gerencie o acesso ao aplicativo</p>
@@ -89,6 +89,7 @@ export default function UsersPage() {
             )}
 
             <Card style={{ padding: 0, overflow: 'hidden' }}>
+                <div className={styles.tableWrapper}>
                 <table className={styles.table}>
                     <thead>
                         <tr>
@@ -155,6 +156,7 @@ export default function UsersPage() {
                         ))}
                     </tbody>
                 </table>
+                </div>
             </Card>
 
             {/* Edit Modal */}

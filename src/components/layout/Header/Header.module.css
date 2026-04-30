@@ -1,15 +1,33 @@
 .header {
-    height: 4rem;
+    height: var(--header-height);
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
     justify-content: flex-end;
     padding: 0 2rem;
     background-color: var(--background);
-    /* Or var(--card) if preferred */
     position: sticky;
     top: 0;
     z-index: 10;
+    gap: 1rem;
+}
+
+.hamburger {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--foreground);
+    padding: 0.5rem;
+    border-radius: var(--radius);
+    margin-right: auto;
+    transition: background-color 0.15s;
+}
+
+.hamburger:hover {
+    background-color: var(--accent);
 }
 
 .user {
@@ -22,17 +40,38 @@
     width: 2rem;
     height: 2rem;
     border-radius: 9999px;
-    background-color: var(--accent);
+    background-color: var(--primary);
+    color: var(--primary-foreground);
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 600;
     font-size: 0.875rem;
-    color: var(--foreground);
 }
 
 .email {
     font-size: 0.875rem;
     font-weight: 500;
     color: var(--foreground);
+}
+
+/* ========== TABLET & MOBILE ========== */
+@media (max-width: 1024px) {
+    .header {
+        padding: 0 1rem;
+    }
+
+    .hamburger {
+        display: flex;
+    }
+}
+
+@media (max-width: 640px) {
+    .email {
+        display: none;
+    }
+
+    .header {
+        padding: 0 0.75rem;
+    }
 }

@@ -11,6 +11,8 @@
     cursor: pointer;
     border: 1px solid transparent;
     gap: 0.5rem;
+    white-space: nowrap;
+    font-family: inherit;
 }
 
 .button:disabled {
@@ -38,6 +40,17 @@
     background-color: var(--muted);
 }
 
+/* Outline Variant */
+.outline {
+    background-color: transparent;
+    border-color: var(--border);
+    color: var(--foreground);
+}
+
+.outline:hover:not(:disabled) {
+    background-color: var(--accent);
+}
+
 /* Ghost Variant */
 .ghost {
     background-color: transparent;
@@ -54,6 +67,10 @@
     color: var(--destructive-foreground);
 }
 
+.destructive:hover:not(:disabled) {
+    opacity: 0.9;
+}
+
 /* Sizes */
 .sm {
     padding: 0.25rem 0.75rem;
@@ -68,4 +85,15 @@
 /* Full width */
 .full {
     width: 100%;
+}
+
+/* ========== MOBILE ========== */
+@media (max-width: 640px) {
+    .button {
+        font-size: 0.8125rem;
+    }
+
+    .lg {
+        padding: 0.625rem 1.25rem;
+    }
 }

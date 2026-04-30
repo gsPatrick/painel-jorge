@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Stage, Layer, Image as KonvaImage, Rect, Text, Transformer, Group } from 'react-konva';
 import useImage from 'use-image';
-import { ImagePlus, Type, Square, X, MousePointer2 } from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCcw, Lock, Unlock, Eye, EyeOff, Layers, Move } from 'lucide-react';
 import styles from './AdvancedVisualEditor.module.css';
 
 const URLImage = ({ src, ...props }) => {
-    const [image] = useImage(src);
+    const [image] = useImage(src, 'anonymous');
     return <KonvaImage image={image} {...props} />;
 };
 
@@ -15,14 +15,19 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
     const [selectedId, selectShape] = useState(null);
     const stageRef = useRef(null);
     const transformerRef = useRef(null);
-
-    // Initial scale to fit screen
-    const [scale, setScale] = useState(1);
     const containerRef = useRef(null);
 
-    // Canvas dimensions (mm to px conversion roughly or just ratio)
-    // We will treat internal coordinates as relative % or simple px and normalize on save.
-    // For simplicity, let's work with a fixed internal resolution (e.g. 1000px width) and scale status.
+    // Zoom
+    const [scale, setScale] = useState(1);
+    const [stageScale, setStageScale] = useState(1);
+
+    // Layer visibility & lock
+    const [layerState, setLayerState] = useState({
+        photo_placeholder: { visible: true, locked: false },
+        overlay_layer: { visible: true, locked: false },
+    });
+
+    // Canvas dimensions
     const INTERNAL_WIDTH = 1000;
     const aspectRatio = canvasSize ? canvasSize.width / canvasSize.height : 210 / 297;
     const INTERNAL_HEIGHT = INTERNAL_WIDTH / aspectRatio;
@@ -51,15 +56,10 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
         type: 'placeholder'
     });
 
-    // Text Layers State
-
-    // Text Layers State
-    // We need to map parent textLayers to Konva state
-    // AND update parent when changed.
-
-    const handleSelect = (id) => {
+    const handleSelect = useCallback((id) => {
+        if (layerState[id]?.locked) return;
         selectShape(id);
-    };
+    }, [layerState]);
 
     const checkDeselect = (e) => {
         const clickedOnEmpty = e.target === e.target.getStage();
@@ -68,23 +68,25 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
         }
     };
 
+    // Attach transformer to selected shape
     useEffect(() => {
-        if (selectedId && transformerRef.current) {
-            const node = stageRef.current.findOne('.' + selectedId);
+        if (selectedId && transformerRef.current && stageRef.current) {
+            const node = stageRef.current.findOne('#' + selectedId);
             if (node) {
                 transformerRef.current.nodes([node]);
                 transformerRef.current.getLayer().batchDraw();
             }
+        } else if (transformerRef.current) {
+            transformerRef.current.nodes([]);
+            transformerRef.current.getLayer()?.batchDraw();
         }
     }, [selectedId]);
 
-    // Update parent on transform end
     const handleTransformEnd = (e) => {
         const node = e.target;
         const scaleX = node.scaleX();
         const scaleY = node.scaleY();
 
-        // Reset scale to 1 and adjust width/height
         node.scaleX(1);
         node.scaleY(1);
 
@@ -96,7 +98,9 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
             rotation: node.rotation(),
         };
 
-        if (selectedId === 'photo_placeholder') {
+        const nodeId = node.id();
+
+        if (nodeId === 'photo_placeholder') {
             const updated = { ...placeholder, ...newProps };
             setPlaceholder(updated);
 
@@ -111,7 +115,7 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
                     unit: '%'
                 });
             }
-        } else if (selectedId === 'overlay_layer') {
+        } else if (nodeId === 'overlay_layer') {
             const updated = { ...overlay, ...newProps };
             setOverlay(updated);
 
@@ -126,21 +130,14 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
                     unit: '%'
                 });
             }
-        } else if (selectedId.startsWith('text_')) {
-            // Handle text update
-            // Note: For text, we might just update font size or scale?
-            // Simplified: Update parent textLayers
-            const index = parseInt(selectedId.replace('text_', ''));
+        } else if (nodeId.startsWith('text_')) {
+            const index = parseInt(nodeId.replace('text_', ''));
             const newLayers = [...textLayers];
-            // Calculations for text are complex because parent expects size in px relative to something?
-            // Let's assume parent textLayers are consistent.
-
-            // For now, let's update position % and size
             newLayers[index] = {
                 ...newLayers[index],
                 x: (newProps.x / INTERNAL_WIDTH) * 100,
                 y: (newProps.y / INTERNAL_HEIGHT) * 100,
-                size: (newLayers[index].size || 14) * scaleX // Update font size based on scale
+                size: Math.round((newLayers[index].size || 14) * scaleX)
             };
             onTextLayerChange(newLayers);
         }
@@ -150,39 +147,46 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
         handleTransformEnd(e);
     };
 
+    // Toggle layer state
+    const toggleLayerProp = (layerId, prop) => {
+        setLayerState(prev => ({
+            ...prev,
+            [layerId]: {
+                ...prev[layerId],
+                [prop]: !(prev[layerId]?.[prop] ?? false)
+            }
+        }));
+        if (prop === 'locked' && selectedId === layerId) {
+            selectShape(null);
+        }
+    };
+
     // Responsive Stage
     useEffect(() => {
         const resize = () => {
             if (containerRef.current) {
-                // Find the main workspace container (the one with the gray background)
-                let parent = containerRef.current.parentElement;
-                while (parent && parent.tagName !== 'MAIN' && !parent.style.backgroundColor.includes('cbd5e1')) {
-                    parent = parent.parentElement;
-                }
-                
-                if (!parent) parent = containerRef.current.parentElement;
-                
-                const padding = 80; 
-                const availableWidth = Math.max(300, parent.offsetWidth - padding);
-                const availableHeight = Math.max(300, parent.offsetHeight - padding);
-                
+                const parent = containerRef.current.parentElement;
+                if (!parent) return;
+
+                const padding = 40;
+                const availableWidth = Math.max(200, parent.offsetWidth - padding);
+                const availableHeight = Math.max(200, parent.offsetHeight - padding);
+
                 const scaleW = availableWidth / INTERNAL_WIDTH;
                 const scaleH = availableHeight / INTERNAL_HEIGHT;
-                
-                // Use the smaller scale to ensure it fits both directions
+
                 const newScale = Math.min(scaleW, scaleH);
-                setScale(newScale); 
+                setScale(newScale);
             }
         };
-        
+
         const observer = new ResizeObserver(resize);
         if (containerRef.current?.parentElement) {
             observer.observe(containerRef.current.parentElement);
         }
-        
+
         resize();
         window.addEventListener('resize', resize);
-        // Initial delay to allow flexbox to settle
         const timer = setTimeout(resize, 100);
 
         return () => {
@@ -192,173 +196,227 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
         };
     }, [INTERNAL_HEIGHT, INTERNAL_WIDTH]);
 
+    // Zoom controls
+    const zoomIn = () => setStageScale(s => Math.min(3, s + 0.15));
+    const zoomOut = () => setStageScale(s => Math.max(0.3, s - 0.15));
+    const resetZoom = () => setStageScale(1);
+
+    const effectiveScale = scale * stageScale;
+
+    // Wheel zoom
+    const handleWheel = (e) => {
+        e.evt.preventDefault();
+        const delta = e.evt.deltaY > 0 ? -0.05 : 0.05;
+        setStageScale(s => Math.min(3, Math.max(0.3, s + delta)));
+    };
+
+    if (!imageSrc) {
+        return (
+            <div className={styles.empty}>
+                <Move size={48} strokeWidth={1} />
+                <p>Faça upload de uma imagem de fundo para começar</p>
+            </div>
+        );
+    }
+
     return (
-        <div className={styles.container} ref={containerRef} style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-            {/* Layer Selector Overlay */}
-            <div style={{ 
-                position: 'absolute', 
-                bottom: '1.5rem', 
-                left: '1.5rem', 
-                zIndex: 30,
-                backgroundColor: 'rgba(255,255,255,0.95)',
-                padding: '0.4rem',
-                borderRadius: '0.75rem',
-                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.25rem',
-                border: '1px solid #e2e8f0'
-            }}>
-                <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748b', padding: '0.2rem 0.5rem', textTransform: 'uppercase' }}>Camadas</span>
-                <button 
+        <div className={styles.container} ref={containerRef}>
+            {/* Layer Panel */}
+            <div className={styles.layerPanel}>
+                <div className={styles.layerPanelTitle}>
+                    <Layers size={12} />
+                    Camadas
+                </div>
+
+                {/* Photo Layer */}
+                <div
+                    className={`${styles.layerItem} ${selectedId === 'photo_placeholder' ? styles.layerItemActive : ''}`}
                     onClick={() => handleSelect('photo_placeholder')}
-                    style={{
-                        padding: '0.5rem 1rem',
-                        borderRadius: '0.5rem',
-                        border: 'none',
-                        backgroundColor: selectedId === 'photo_placeholder' ? '#3b82f6' : 'transparent',
-                        color: selectedId === 'photo_placeholder' ? '#fff' : '#1e293b',
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        textAlign: 'left'
-                    }}
                 >
-                    🖼️ Área da Foto
-                </button>
+                    <span className={styles.layerItemLabel}>🖼️ Área da Foto</span>
+                    <div className={styles.layerItemActions}>
+                        <button onClick={(e) => { e.stopPropagation(); toggleLayerProp('photo_placeholder', 'locked'); }} title={layerState.photo_placeholder?.locked ? 'Desbloquear' : 'Bloquear'}>
+                            {layerState.photo_placeholder?.locked ? <Lock size={11} /> : <Unlock size={11} />}
+                        </button>
+                        <button onClick={(e) => { e.stopPropagation(); toggleLayerProp('photo_placeholder', 'visible'); }} title={layerState.photo_placeholder?.visible !== false ? 'Ocultar' : 'Mostrar'}>
+                            {layerState.photo_placeholder?.visible !== false ? <Eye size={11} /> : <EyeOff size={11} />}
+                        </button>
+                    </div>
+                </div>
+
+                {/* Overlay Layer */}
                 {overlaySrc && (
-                    <button 
+                    <div
+                        className={`${styles.layerItem} ${selectedId === 'overlay_layer' ? styles.layerItemActive : ''}`}
                         onClick={() => handleSelect('overlay_layer')}
-                        style={{
-                            padding: '0.5rem 1rem',
-                            borderRadius: '0.5rem',
-                            border: 'none',
-                            backgroundColor: selectedId === 'overlay_layer' ? '#3b82f6' : 'transparent',
-                            color: selectedId === 'overlay_layer' ? '#fff' : '#1e293b',
-                            fontSize: '0.75rem',
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            textAlign: 'left'
-                        }}
                     >
-                        🎭 Moldura (PNG)
-                    </button>
+                        <span className={styles.layerItemLabel}>🎭 Moldura</span>
+                        <div className={styles.layerItemActions}>
+                            <button onClick={(e) => { e.stopPropagation(); toggleLayerProp('overlay_layer', 'locked'); }} title={layerState.overlay_layer?.locked ? 'Desbloquear' : 'Bloquear'}>
+                                {layerState.overlay_layer?.locked ? <Lock size={11} /> : <Unlock size={11} />}
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); toggleLayerProp('overlay_layer', 'visible'); }} title={layerState.overlay_layer?.visible !== false ? 'Ocultar' : 'Mostrar'}>
+                                {layerState.overlay_layer?.visible !== false ? <Eye size={11} /> : <EyeOff size={11} />}
+                            </button>
+                        </div>
+                    </div>
                 )}
+
+                {/* Text Layers */}
+                {textLayers.map((layer, i) => (
+                    <div
+                        key={i}
+                        className={`${styles.layerItem} ${selectedId === `text_${i}` ? styles.layerItemActive : ''}`}
+                        onClick={() => handleSelect(`text_${i}`)}
+                    >
+                        <span className={styles.layerItemLabel}>📝 {layer.content?.slice(0, 12) || 'Texto'}</span>
+                    </div>
+                ))}
             </div>
 
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {/* Zoom Controls */}
+            <div className={styles.zoomControls}>
+                <button onClick={zoomOut} title="Zoom Out"><ZoomOut size={14} /></button>
+                <span className={styles.zoomLabel}>{Math.round(stageScale * 100)}%</span>
+                <button onClick={zoomIn} title="Zoom In"><ZoomIn size={14} /></button>
+                <button onClick={resetZoom} title="Resetar Zoom"><RotateCcw size={14} /></button>
+            </div>
+
+            {/* Canvas */}
+            <div className={styles.stageArea}>
                 <Stage
-                    width={INTERNAL_WIDTH * scale}
-                    height={INTERNAL_HEIGHT * scale}
+                    width={INTERNAL_WIDTH * effectiveScale}
+                    height={INTERNAL_HEIGHT * effectiveScale}
                     onMouseDown={checkDeselect}
                     onTouchStart={checkDeselect}
+                    onWheel={handleWheel}
                     ref={stageRef}
                 >
-                <Layer scaleX={scale} scaleY={scale}>
-                    {/* Background */}
-                    <URLImage
-                        src={imageSrc}
-                        width={INTERNAL_WIDTH}
-                        height={INTERNAL_HEIGHT}
-                        listening={false} 
-                    />
-
-                    {/* Photo Placeholder */}
-                    <Group
-                        x={placeholder.x}
-                        y={placeholder.y}
-                        width={placeholder.width}
-                        height={placeholder.height}
-                        rotation={placeholder.rotation}
-                        draggable
-                        id="photo_placeholder"
-                        name="photo_placeholder"
-                        onDragEnd={handleDragEnd}
-                        onTransformEnd={handleTransformEnd}
-                        onClick={() => handleSelect('photo_placeholder')}
-                        onTap={() => handleSelect('photo_placeholder')}
-                    >
-                        <Rect
-                            width={placeholder.width}
-                            height={placeholder.height}
-                            fill="rgba(0,0,0,0.3)"
-                            stroke={selectedId === 'photo_placeholder' ? '#00A3FF' : '#fff'}
-                            strokeWidth={2}
-                            dash={[5, 5]}
+                    <Layer scaleX={effectiveScale} scaleY={effectiveScale}>
+                        {/* Background */}
+                        <URLImage
+                            src={imageSrc}
+                            width={INTERNAL_WIDTH}
+                            height={INTERNAL_HEIGHT}
+                            listening={false}
                         />
-                        <Text
-                            text="Área da Foto"
-                            width={placeholder.width}
-                            height={placeholder.height}
-                            align="center"
-                            verticalAlign="middle"
-                            fontFamily="sans-serif"
-                            fontSize={16}
-                            fill="#fff"
-                        />
-                    </Group>
 
-                    {/* Overlay / Frame Layer */}
-                    {overlaySrc && (
-                        <Group
-                            x={overlay.x}
-                            y={overlay.y}
-                            width={overlay.width}
-                            height={overlay.height}
-                            rotation={overlay.rotation}
-                            draggable
-                            id="overlay_layer"
-                            name="overlay_layer"
-                            onDragEnd={handleDragEnd}
-                            onTransformEnd={handleTransformEnd}
-                            onClick={() => handleSelect('overlay_layer')}
-                            onTap={() => handleSelect('overlay_layer')}
-                        >
-                            <URLImage
-                                src={overlaySrc}
+                        {/* Photo Placeholder */}
+                        {layerState.photo_placeholder?.visible !== false && (
+                            <Group
+                                x={placeholder.x}
+                                y={placeholder.y}
+                                width={placeholder.width}
+                                height={placeholder.height}
+                                rotation={placeholder.rotation}
+                                draggable={!layerState.photo_placeholder?.locked}
+                                id="photo_placeholder"
+                                name="photo_placeholder"
+                                onDragEnd={handleDragEnd}
+                                onTransformEnd={handleTransformEnd}
+                                onClick={() => handleSelect('photo_placeholder')}
+                                onTap={() => handleSelect('photo_placeholder')}
+                            >
+                                <Rect
+                                    width={placeholder.width}
+                                    height={placeholder.height}
+                                    fill="rgba(59, 130, 246, 0.15)"
+                                    stroke={selectedId === 'photo_placeholder' ? '#3b82f6' : 'rgba(255,255,255,0.8)'}
+                                    strokeWidth={selectedId === 'photo_placeholder' ? 2.5 : 1.5}
+                                    dash={selectedId === 'photo_placeholder' ? [] : [8, 4]}
+                                    cornerRadius={2}
+                                />
+                                <Text
+                                    text="📷 Área da Foto"
+                                    width={placeholder.width}
+                                    height={placeholder.height}
+                                    align="center"
+                                    verticalAlign="middle"
+                                    fontFamily="sans-serif"
+                                    fontSize={Math.min(18, placeholder.width / 10)}
+                                    fill="rgba(255,255,255,0.9)"
+                                />
+                            </Group>
+                        )}
+
+                        {/* Overlay / Frame Layer */}
+                        {overlaySrc && layerState.overlay_layer?.visible !== false && (
+                            <Group
+                                x={overlay.x}
+                                y={overlay.y}
                                 width={overlay.width}
                                 height={overlay.height}
+                                rotation={overlay.rotation}
+                                draggable={!layerState.overlay_layer?.locked}
+                                id="overlay_layer"
+                                name="overlay_layer"
+                                onDragEnd={handleDragEnd}
+                                onTransformEnd={handleTransformEnd}
+                                onClick={() => handleSelect('overlay_layer')}
+                                onTap={() => handleSelect('overlay_layer')}
+                            >
+                                <URLImage
+                                    src={overlaySrc}
+                                    width={overlay.width}
+                                    height={overlay.height}
+                                />
+                                {selectedId === 'overlay_layer' && (
+                                    <Rect
+                                        width={overlay.width}
+                                        height={overlay.height}
+                                        stroke="#8b5cf6"
+                                        strokeWidth={2}
+                                        fill="transparent"
+                                        listening={false}
+                                    />
+                                )}
+                            </Group>
+                        )}
+
+                        {/* Text Layers */}
+                        {textLayers.map((layer, i) => (
+                            <Text
+                                key={i}
+                                name={`text_${i}`}
+                                id={`text_${i}`}
+                                x={(layer.x / 100) * INTERNAL_WIDTH}
+                                y={(layer.y / 100) * INTERNAL_HEIGHT}
+                                text={layer.content || "Texto"}
+                                fontSize={layer.size * 2}
+                                fill={layer.color}
+                                draggable
+                                onClick={() => handleSelect(`text_${i}`)}
+                                onTap={() => handleSelect(`text_${i}`)}
+                                onDragEnd={handleDragEnd}
+                                onTransformEnd={handleTransformEnd}
                             />
-                        </Group>
-                    )}
+                        ))}
 
-                    {/* Text Layers */}
-                    {textLayers.map((layer, i) => (
-                        <Text
-                            key={i}
-                            name={`text_${i}`}
-                            id={`text_${i}`}
-                            x={(layer.x / 100) * INTERNAL_WIDTH}
-                            y={(layer.y / 100) * INTERNAL_HEIGHT}
-                            text={layer.content || "Texto"}
-                            fontSize={layer.size * 2} // visual scaling correction roughly
-                            fill={layer.color}
-                            draggable
-                            onClick={() => handleSelect(`text_${i}`)}
-                            onTap={() => handleSelect(`text_${i}`)}
-                            onDblClick={() => handleSelect(`text_${i}`)}
-                            onDragEnd={handleDragEnd}
-                            onTransformEnd={handleTransformEnd}
-                        />
-                    ))}
-
-                    <Transformer
-                        ref={transformerRef}
-                        enabledAnchors={
-                            selectedId?.startsWith('text_') 
-                            ? ['top-left', 'top-right', 'bottom-left', 'bottom-right'] 
-                            : ['top-left', 'top-center', 'top-right', 'middle-right', 'middle-left', 'bottom-left', 'bottom-center', 'bottom-right']
-                        }
-                        boundBoxFunc={(oldBox, newBox) => {
-                            if (newBox.width < 5 || newBox.height < 5) {
-                                return oldBox;
+                        <Transformer
+                            ref={transformerRef}
+                            rotateEnabled={true}
+                            keepRatio={false}
+                            anchorSize={10}
+                            anchorCornerRadius={2}
+                            anchorStroke="#3b82f6"
+                            anchorFill="#fff"
+                            borderStroke="#3b82f6"
+                            borderStrokeWidth={1.5}
+                            enabledAnchors={
+                                selectedId?.startsWith('text_')
+                                    ? ['top-left', 'top-right', 'bottom-left', 'bottom-right']
+                                    : ['top-left', 'top-center', 'top-right', 'middle-right', 'middle-left', 'bottom-left', 'bottom-center', 'bottom-right']
                             }
-                            return newBox;
-                        }}
-                    />
-                </Layer>
-            </Stage>
+                            boundBoxFunc={(oldBox, newBox) => {
+                                if (newBox.width < 5 || newBox.height < 5) {
+                                    return oldBox;
+                                }
+                                return newBox;
+                            }}
+                        />
+                    </Layer>
+                </Stage>
+            </div>
         </div>
-    </div>
-);
+    );
 }

@@ -45,7 +45,7 @@ export default function ReportsPage() {
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                 <div>
-                    <h1 style={{ fontSize: '1.875rem', fontWeight: 700 }}>
+                    <h1 style={{ fontSize: 'clamp(1.25rem, 4vw, 1.875rem)', fontWeight: 700 }}>
                         <Trophy size={28} style={{ display: 'inline', marginRight: '0.75rem', verticalAlign: 'middle', color: '#f59e0b' }} />
                         Ranking de Fotógrafos
                     </h1>
@@ -105,7 +105,8 @@ export default function ReportsPage() {
                         <p>Nenhuma impressão registrada no período.</p>
                     </div>
                 ) : (
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
                         <thead>
                             <tr style={{ borderBottom: '1px solid var(--border)' }}>
                                 <th style={thStyle}>#</th>
@@ -160,6 +161,7 @@ export default function ReportsPage() {
                             })}
                         </tbody>
                     </table>
+                    </div>
                 )}
             </Card>
         </div>

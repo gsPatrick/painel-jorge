@@ -1,0 +1,37 @@
+.container {
+    display: flex;
+    min-height: 100vh;
+    min-height: 100dvh;
+    background-color: var(--background);
+}
+
+.main {
+    flex: 1;
+    margin-left: var(--sidebar-width);
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* Prevent flexbox overflow */
+}
+
+.content {
+    flex: 1;
+    padding: 2rem;
+    overflow-x: hidden;
+}
+
+/* ========== TABLET & MOBILE ========== */
+@media (max-width: 1024px) {
+    .main {
+        margin-left: 0;
+    }
+
+    .content {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .content {
+        padding: 1rem;
+    }
+}

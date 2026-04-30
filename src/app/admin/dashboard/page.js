@@ -33,8 +33,8 @@ export default function DashboardPage() {
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
             <div>
-                <h1 style={{ fontSize: '1.875rem', fontWeight: 700, marginBottom: '0.5rem' }}>Dashboard</h1>
-                <p style={{ color: 'var(--muted-foreground)' }}>Visão geral do sistema</p>
+                <h1 style={{ fontSize: 'clamp(1.5rem, 4vw, 1.875rem)', fontWeight: 700, marginBottom: '0.25rem' }}>Dashboard</h1>
+                <p style={{ color: 'var(--muted-foreground)', fontSize: '0.875rem' }}>Visão geral do sistema</p>
             </div>
 
             {/* KPI Cards */}

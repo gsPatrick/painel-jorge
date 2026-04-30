@@ -1,6 +1,7 @@
 .container {
     display: flex;
     min-height: 100vh;
+    min-height: 100dvh;
     width: 100vw;
     background-color: var(--background);
 }
@@ -14,7 +15,6 @@
     position: relative;
     border-right: 1px solid var(--border);
     overflow: hidden;
-    /* Ensure blurred edges don't spill out */
 }
 
 /* Background Image with Blur */
@@ -26,9 +26,7 @@
     background-size: cover;
     background-position: center;
     filter: blur(3px);
-    /* Leve blur */
     transform: scale(1.05);
-    /* Prevent white edges from blur */
     z-index: 0;
 }
 
@@ -38,7 +36,6 @@
     position: absolute;
     inset: 0;
     background: linear-gradient(to right, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0));
-    /* Slightly darker for contrast */
     z-index: 1;
 }
 
@@ -53,7 +50,6 @@
 .authBox {
     width: 100%;
     max-width: 24rem;
-    /* max-w-sm */
     display: flex;
     flex-direction: column;
     gap: 2rem;
@@ -61,7 +57,6 @@
 
 .header {
     text-align: left;
-    /* Senior: Left-aligned usually cleaner for split layouts */
 }
 
 .title {
@@ -81,4 +76,34 @@
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+}
+
+/* ========== TABLET ========== */
+@media (max-width: 1024px) {
+    .leftPanel {
+        display: none;
+    }
+
+    .rightPanel {
+        flex: 1;
+    }
+}
+
+/* ========== MOBILE ========== */
+@media (max-width: 640px) {
+    .rightPanel {
+        padding: 1.5rem;
+    }
+
+    .title {
+        font-size: 1.75rem;
+    }
+
+    .subtitle {
+        font-size: 0.875rem;
+    }
+
+    .authBox {
+        gap: 1.5rem;
+    }
 }
