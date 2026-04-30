@@ -359,5 +359,6 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
                 </Layer>
             </Stage>
         </div>
-    );
+    </div>
+);
 }
