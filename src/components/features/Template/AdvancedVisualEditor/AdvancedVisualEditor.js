@@ -248,6 +248,8 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
     const lastMeasured = useRef({ w: 0, h: 0 });
     
     useEffect(() => {
+        if (!containerRef.current) return;
+
         const resize = () => {
             if (containerRef.current) {
                 // Find the top-level workspace (the gray area) which is stable
@@ -310,7 +312,7 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
             observer.disconnect();
             clearTimeout(timer);
         };
-    }, [INTERNAL_HEIGHT, INTERNAL_WIDTH]);
+    }, [INTERNAL_HEIGHT, INTERNAL_WIDTH, imageSrc]);
 
     // Zoom controls
     const zoomIn = () => setStageScale(s => Math.min(3, s + 0.15));
