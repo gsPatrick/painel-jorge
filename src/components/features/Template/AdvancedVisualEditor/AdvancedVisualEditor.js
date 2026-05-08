@@ -29,56 +29,59 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
 
     // Z-Index Order Manager
     const [layersOrder, setLayersOrder] = useState(initialConfig?.layersOrder || []);
+    const [prevSyncKey, setPrevSyncKey] = useState(`${overlaySrc}-${textLayers.length}`);
 
-    // Sync layersOrder with props (only when needed)
-    useEffect(() => {
-        setLayersOrder(currentOrder => {
-            let needsUpdate = false;
-            let newOrder = [...currentOrder];
+    // Sync layersOrder with props during render (Recommended pattern for Adjusting State from Props)
+    const currentSyncKey = `${overlaySrc}-${textLayers.length}`;
+    if (currentSyncKey !== prevSyncKey) {
+        setPrevSyncKey(currentSyncKey);
+        
+        let needsUpdate = false;
+        let newOrder = [...layersOrder];
 
-            if (!newOrder.includes('photo_placeholder')) {
-                newOrder.push('photo_placeholder');
+        if (!newOrder.includes('photo_placeholder')) {
+            newOrder.push('photo_placeholder');
+            needsUpdate = true;
+        }
+
+        if (overlaySrc && !newOrder.includes('overlay_layer')) {
+            newOrder.push('overlay_layer');
+            needsUpdate = true;
+        } else if (!overlaySrc && newOrder.includes('overlay_layer')) {
+            const idx = newOrder.indexOf('overlay_layer');
+            if (idx > -1) {
+                newOrder.splice(idx, 1);
                 needsUpdate = true;
             }
+        }
 
-            if (overlaySrc && !newOrder.includes('overlay_layer')) {
-                newOrder.push('overlay_layer');
-                needsUpdate = true;
-            } else if (!overlaySrc && newOrder.includes('overlay_layer')) {
-                const idx = newOrder.indexOf('overlay_layer');
-                if (idx > -1) {
-                    newOrder.splice(idx, 1);
-                    needsUpdate = true;
-                }
-            }
-
-            // Sync text layers
-            textLayers.forEach((_, i) => {
-                const id = `text_${i}`;
-                if (!newOrder.includes(id)) {
-                    newOrder.push(id);
-                    needsUpdate = true;
-                }
-            });
-
-            // Remove deleted text layers
-            const filteredOrder = newOrder.filter(id => {
-                if (id.startsWith('text_')) {
-                    const index = parseInt(id.replace('text_', ''));
-                    return index < textLayers.length;
-                }
-                return true;
-            });
-
-            if (filteredOrder.length !== newOrder.length) {
+        // Sync text layers
+        textLayers.forEach((_, i) => {
+            const id = `text_${i}`;
+            if (!newOrder.includes(id)) {
+                newOrder.push(id);
                 needsUpdate = true;
             }
-
-            return needsUpdate ? filteredOrder : currentOrder;
         });
-    }, [overlaySrc, textLayers]);
-    // Note: layersOrder is removed from dependencies to avoid cascading renders.
-    // The functional update setLayersOrder(current => ...) handles the update safely.
+
+        // Remove deleted text layers
+        const filteredOrder = newOrder.filter(id => {
+            if (id.startsWith('text_')) {
+                const index = parseInt(id.replace('text_', ''));
+                return index < textLayers.length;
+            }
+            return true;
+        });
+
+        if (filteredOrder.length !== newOrder.length) {
+            needsUpdate = true;
+            newOrder = filteredOrder;
+        }
+
+        if (needsUpdate) {
+            setLayersOrder(newOrder);
+        }
+    }
 
     // Save changes helper
     const saveChanges = useCallback((updatedProps) => {
