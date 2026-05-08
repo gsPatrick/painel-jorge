@@ -83,9 +83,7 @@
     gap: 1.25rem;
 }
 
-.sidebarToggle {
-    /* visible on all sizes */
-}
+
 
 .section {
     border-bottom: 1px solid #e2e8f0;
@@ -216,6 +214,7 @@
     justify-content: center;
     padding: 2rem;
     overflow: auto;
+    min-height: 500px; /* Force minimum space to avoid collapse */
 }
 
 .canvasWrapper {

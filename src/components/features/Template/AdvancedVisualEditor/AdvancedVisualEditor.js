@@ -30,36 +30,53 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
     // Z-Index Order Manager
     const [layersOrder, setLayersOrder] = useState(initialConfig?.layersOrder || []);
 
+    // Sync layersOrder with props (only when needed)
     useEffect(() => {
-        setLayersOrder(prev => {
-            let newOrder = [...prev];
-            
-            if (!newOrder.includes('photo_placeholder')) newOrder.push('photo_placeholder');
-            
-            if (overlaySrc && !newOrder.includes('overlay_layer')) {
-                newOrder.push('overlay_layer');
-            } else if (!overlaySrc && newOrder.includes('overlay_layer')) {
-                newOrder = newOrder.filter(id => id !== 'overlay_layer');
+        let needsUpdate = false;
+        const newOrder = [...layersOrder];
+
+        if (!newOrder.includes('photo_placeholder')) {
+            newOrder.push('photo_placeholder');
+            needsUpdate = true;
+        }
+
+        if (overlaySrc && !newOrder.includes('overlay_layer')) {
+            newOrder.push('overlay_layer');
+            needsUpdate = true;
+        } else if (!overlaySrc && newOrder.includes('overlay_layer')) {
+            const idx = newOrder.indexOf('overlay_layer');
+            if (idx > -1) {
+                newOrder.splice(idx, 1);
+                needsUpdate = true;
             }
-            
-            // Sync text layers
-            textLayers.forEach((_, i) => {
-                const id = `text_${i}`;
-                if (!newOrder.includes(id)) newOrder.push(id);
-            });
-            
-            // Remove deleted text layers
-            newOrder = newOrder.filter(id => {
-                if (id.startsWith('text_')) {
-                    const index = parseInt(id.replace('text_', ''));
-                    return index < textLayers.length;
-                }
-                return true;
-            });
-            
-            return newOrder;
+        }
+
+        // Sync text layers
+        textLayers.forEach((_, i) => {
+            const id = `text_${i}`;
+            if (!newOrder.includes(id)) {
+                newOrder.push(id);
+                needsUpdate = true;
+            }
         });
-    }, [overlaySrc, textLayers.length]);
+
+        // Remove deleted text layers
+        const filteredOrder = newOrder.filter(id => {
+            if (id.startsWith('text_')) {
+                const index = parseInt(id.replace('text_', ''));
+                return index < textLayers.length;
+            }
+            return true;
+        });
+
+        if (filteredOrder.length !== newOrder.length) {
+            needsUpdate = true;
+        }
+
+        if (needsUpdate) {
+            setLayersOrder(filteredOrder);
+        }
+    }, [overlaySrc, textLayers, layersOrder]);
 
     // Save changes helper
     const saveChanges = useCallback((updatedProps) => {
@@ -226,17 +243,23 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
     useEffect(() => {
         const resize = () => {
             if (containerRef.current) {
-                // Find the real workspace container (the one with the gray background)
+                // Find a parent that has a stable height (not the collapsing wrapper)
                 let parent = containerRef.current.parentElement;
-                while (parent && parent.offsetHeight < 100 && parent.parentElement) {
+                while (parent && parent.offsetHeight < 150 && parent.parentElement) {
                     parent = parent.parentElement;
                 }
                 
-                if (!parent) return;
+                const padding = 60;
+                let availableWidth = parent ? parent.offsetWidth - padding : 800;
+                let availableHeight = parent ? parent.offsetHeight - padding : 600;
 
-                const padding = 40;
-                const availableWidth = Math.max(200, parent.offsetWidth - padding);
-                const availableHeight = Math.max(200, parent.offsetHeight - padding);
+                // Absolute fallback if parents are collapsing or hidden initially
+                if (availableHeight < 150) {
+                    availableHeight = Math.max(300, window.innerHeight - 250);
+                }
+                if (availableWidth < 150) {
+                    availableWidth = Math.max(300, window.innerWidth - 400);
+                }
 
                 const scaleW = availableWidth / INTERNAL_WIDTH;
                 const scaleH = availableHeight / INTERNAL_HEIGHT;
@@ -247,17 +270,33 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
         };
 
         const observer = new ResizeObserver(resize);
-        if (containerRef.current?.parentElement) {
+        
+        // Find a stable ancestor to observe
+        let obsTarget = containerRef.current.parentElement;
+        while (obsTarget && obsTarget.offsetHeight < 150 && obsTarget.parentElement) {
+            obsTarget = obsTarget.parentElement;
+        }
+        
+        if (obsTarget) {
+            observer.observe(obsTarget);
+        } else if (containerRef.current?.parentElement) {
             observer.observe(containerRef.current.parentElement);
         }
 
         resize();
         window.addEventListener('resize', resize);
-        const timer = setTimeout(resize, 100);
+        
+        // Additional periodic check for the first few seconds (to handle lazy layout shifts)
+        const checkInterval = setInterval(resize, 1000);
+        const timer = setTimeout(() => {
+            resize();
+            clearInterval(checkInterval);
+        }, 5000);
 
         return () => {
             window.removeEventListener('resize', resize);
             observer.disconnect();
+            clearInterval(checkInterval);
             clearTimeout(timer);
         };
     }, [INTERNAL_HEIGHT, INTERNAL_WIDTH]);
