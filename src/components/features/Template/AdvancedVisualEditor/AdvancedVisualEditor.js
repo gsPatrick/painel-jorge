@@ -250,28 +250,31 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
     useEffect(() => {
         const resize = () => {
             if (containerRef.current) {
-                let parent = containerRef.current.parentElement;
-                while (parent && parent.offsetHeight < 150 && parent.parentElement) {
-                    parent = parent.parentElement;
+                // Find the top-level workspace (the gray area) which is stable
+                let workspace = containerRef.current.parentElement;
+                while (workspace && !workspace.className.includes('workspace') && workspace.parentElement) {
+                    workspace = workspace.parentElement;
                 }
                 
+                const parent = workspace || containerRef.current.parentElement;
                 if (!parent) return;
 
                 const w = parent.offsetWidth;
                 const h = parent.offsetHeight;
 
-                // Threshold to avoid infinite loops from minor layout shifts
-                if (Math.abs(w - lastMeasured.current.w) < 10 && Math.abs(h - lastMeasured.current.h) < 10) {
+                // Threshold to avoid infinite loops (especially from scrollbars appearing/disappearing)
+                if (Math.abs(w - lastMeasured.current.w) < 30 && Math.abs(h - lastMeasured.current.h) < 30) {
                     return;
                 }
                 lastMeasured.current = { w, h };
 
-                const padding = 60;
+                const padding = 100; // Larger padding for stability
                 let availableWidth = w - padding;
                 let availableHeight = h - padding;
 
-                if (availableHeight < 150) availableHeight = Math.max(300, window.innerHeight - 250);
-                if (availableWidth < 150) availableWidth = Math.max(300, window.innerWidth - 400);
+                // Fallbacks
+                if (availableHeight < 200) availableHeight = Math.max(300, window.innerHeight - 300);
+                if (availableWidth < 200) availableWidth = Math.max(300, window.innerWidth - 450);
 
                 const scaleW = availableWidth / INTERNAL_WIDTH;
                 const scaleH = availableHeight / INTERNAL_HEIGHT;
@@ -279,19 +282,22 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
                 const newScale = Math.min(scaleW, scaleH);
                 
                 setScale(prev => {
-                    if (Math.abs(prev - newScale) < 0.01) return prev;
+                    if (Math.abs(prev - newScale) < 0.05) return prev;
                     return newScale;
                 });
             }
         };
 
         const observer = new ResizeObserver(resize);
+        
+        // Observe the workspace or a high-level stable parent
         let obsTarget = containerRef.current.parentElement;
-        while (obsTarget && obsTarget.offsetHeight < 150 && obsTarget.parentElement) {
+        while (obsTarget && !obsTarget.className.includes('workspace') && obsTarget.parentElement) {
             obsTarget = obsTarget.parentElement;
         }
         
         if (obsTarget) observer.observe(obsTarget);
+        else if (containerRef.current?.parentElement) observer.observe(containerRef.current.parentElement);
 
         resize();
         window.addEventListener('resize', resize);
