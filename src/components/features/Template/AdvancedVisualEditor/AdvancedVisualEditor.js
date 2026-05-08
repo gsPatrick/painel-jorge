@@ -245,63 +245,63 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
     };
 
     // Responsive Stage
+    const lastMeasured = useRef({ w: 0, h: 0 });
+    
     useEffect(() => {
         const resize = () => {
             if (containerRef.current) {
-                // Find a parent that has a stable height (not the collapsing wrapper)
                 let parent = containerRef.current.parentElement;
                 while (parent && parent.offsetHeight < 150 && parent.parentElement) {
                     parent = parent.parentElement;
                 }
                 
-                const padding = 60;
-                let availableWidth = parent ? parent.offsetWidth - padding : 800;
-                let availableHeight = parent ? parent.offsetHeight - padding : 600;
+                if (!parent) return;
 
-                // Absolute fallback if parents are collapsing or hidden initially
-                if (availableHeight < 150) {
-                    availableHeight = Math.max(300, window.innerHeight - 250);
+                const w = parent.offsetWidth;
+                const h = parent.offsetHeight;
+
+                // Threshold to avoid infinite loops from minor layout shifts
+                if (Math.abs(w - lastMeasured.current.w) < 10 && Math.abs(h - lastMeasured.current.h) < 10) {
+                    return;
                 }
-                if (availableWidth < 150) {
-                    availableWidth = Math.max(300, window.innerWidth - 400);
-                }
+                lastMeasured.current = { w, h };
+
+                const padding = 60;
+                let availableWidth = w - padding;
+                let availableHeight = h - padding;
+
+                if (availableHeight < 150) availableHeight = Math.max(300, window.innerHeight - 250);
+                if (availableWidth < 150) availableWidth = Math.max(300, window.innerWidth - 400);
 
                 const scaleW = availableWidth / INTERNAL_WIDTH;
                 const scaleH = availableHeight / INTERNAL_HEIGHT;
 
                 const newScale = Math.min(scaleW, scaleH);
-                setScale(newScale);
+                
+                setScale(prev => {
+                    if (Math.abs(prev - newScale) < 0.01) return prev;
+                    return newScale;
+                });
             }
         };
 
         const observer = new ResizeObserver(resize);
-        
-        // Find a stable ancestor to observe
         let obsTarget = containerRef.current.parentElement;
         while (obsTarget && obsTarget.offsetHeight < 150 && obsTarget.parentElement) {
             obsTarget = obsTarget.parentElement;
         }
         
-        if (obsTarget) {
-            observer.observe(obsTarget);
-        } else if (containerRef.current?.parentElement) {
-            observer.observe(containerRef.current.parentElement);
-        }
+        if (obsTarget) observer.observe(obsTarget);
 
         resize();
         window.addEventListener('resize', resize);
         
-        // Additional periodic check for the first few seconds (to handle lazy layout shifts)
-        const checkInterval = setInterval(resize, 1000);
-        const timer = setTimeout(() => {
-            resize();
-            clearInterval(checkInterval);
-        }, 5000);
+        // Initial setup delay
+        const timer = setTimeout(resize, 300);
 
         return () => {
             window.removeEventListener('resize', resize);
             observer.disconnect();
-            clearInterval(checkInterval);
             clearTimeout(timer);
         };
     }, [INTERNAL_HEIGHT, INTERNAL_WIDTH]);
