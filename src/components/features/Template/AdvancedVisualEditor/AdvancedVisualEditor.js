@@ -28,7 +28,7 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
     });
 
     // Z-Index Order Manager
-    const [layersOrder, setLayersOrder] = useState([]);
+    const [layersOrder, setLayersOrder] = useState(initialConfig?.layersOrder || []);
 
     useEffect(() => {
         setLayersOrder(prev => {
@@ -60,6 +60,19 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
             return newOrder;
         });
     }, [overlaySrc, textLayers.length]);
+
+    // Save changes helper
+    const saveChanges = useCallback((updatedProps) => {
+        if (onChange) {
+            onChange({
+                ...initialConfig,
+                ...updatedProps,
+                layersOrder,
+                layerState,
+                unit: '%'
+            });
+        }
+    }, [initialConfig, onChange, layersOrder, layerState]);
 
     // Canvas dimensions
     const INTERNAL_WIDTH = 1000;
@@ -137,33 +150,23 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
         if (nodeId === 'photo_placeholder') {
             const updated = { ...placeholder, ...newProps };
             setPlaceholder(updated);
-
-            if (onChange) {
-                onChange({
-                    ...initialConfig,
-                    x: (updated.x / INTERNAL_WIDTH) * 100,
-                    y: (updated.y / INTERNAL_HEIGHT) * 100,
-                    width: (updated.width / INTERNAL_WIDTH) * 100,
-                    height: (updated.height / INTERNAL_HEIGHT) * 100,
-                    rotation: updated.rotation,
-                    unit: '%'
-                });
-            }
+            saveChanges({
+                x: (updated.x / INTERNAL_WIDTH) * 100,
+                y: (updated.y / INTERNAL_HEIGHT) * 100,
+                width: (updated.width / INTERNAL_WIDTH) * 100,
+                height: (updated.height / INTERNAL_HEIGHT) * 100,
+                rotation: updated.rotation,
+            });
         } else if (nodeId === 'overlay_layer') {
             const updated = { ...overlay, ...newProps };
             setOverlay(updated);
-
-            if (onChange) {
-                onChange({
-                    ...initialConfig,
-                    overlayX: (updated.x / INTERNAL_WIDTH) * 100,
-                    overlayY: (updated.y / INTERNAL_HEIGHT) * 100,
-                    overlayWidth: (updated.width / INTERNAL_WIDTH) * 100,
-                    overlayHeight: (updated.height / INTERNAL_HEIGHT) * 100,
-                    overlayRotation: updated.rotation,
-                    unit: '%'
-                });
-            }
+            saveChanges({
+                overlayX: (updated.x / INTERNAL_WIDTH) * 100,
+                overlayY: (updated.y / INTERNAL_HEIGHT) * 100,
+                overlayWidth: (updated.width / INTERNAL_WIDTH) * 100,
+                overlayHeight: (updated.height / INTERNAL_HEIGHT) * 100,
+                overlayRotation: updated.rotation,
+            });
         } else if (nodeId.startsWith('text_')) {
             const index = parseInt(nodeId.replace('text_', ''));
             const newLayers = [...textLayers];
