@@ -223,7 +223,12 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
     useEffect(() => {
         const resize = () => {
             if (containerRef.current) {
-                const parent = containerRef.current.parentElement;
+                // Find the real workspace container (the one with the gray background)
+                let parent = containerRef.current.parentElement;
+                while (parent && parent.offsetHeight < 100 && parent.parentElement) {
+                    parent = parent.parentElement;
+                }
+                
                 if (!parent) return;
 
                 const padding = 40;
