@@ -32,51 +32,53 @@ export default function AdvancedVisualEditor({ imageSrc, overlaySrc, initialConf
 
     // Sync layersOrder with props (only when needed)
     useEffect(() => {
-        let needsUpdate = false;
-        const newOrder = [...layersOrder];
+        setLayersOrder(currentOrder => {
+            let needsUpdate = false;
+            let newOrder = [...currentOrder];
 
-        if (!newOrder.includes('photo_placeholder')) {
-            newOrder.push('photo_placeholder');
-            needsUpdate = true;
-        }
-
-        if (overlaySrc && !newOrder.includes('overlay_layer')) {
-            newOrder.push('overlay_layer');
-            needsUpdate = true;
-        } else if (!overlaySrc && newOrder.includes('overlay_layer')) {
-            const idx = newOrder.indexOf('overlay_layer');
-            if (idx > -1) {
-                newOrder.splice(idx, 1);
+            if (!newOrder.includes('photo_placeholder')) {
+                newOrder.push('photo_placeholder');
                 needsUpdate = true;
             }
-        }
 
-        // Sync text layers
-        textLayers.forEach((_, i) => {
-            const id = `text_${i}`;
-            if (!newOrder.includes(id)) {
-                newOrder.push(id);
+            if (overlaySrc && !newOrder.includes('overlay_layer')) {
+                newOrder.push('overlay_layer');
+                needsUpdate = true;
+            } else if (!overlaySrc && newOrder.includes('overlay_layer')) {
+                const idx = newOrder.indexOf('overlay_layer');
+                if (idx > -1) {
+                    newOrder.splice(idx, 1);
+                    needsUpdate = true;
+                }
+            }
+
+            // Sync text layers
+            textLayers.forEach((_, i) => {
+                const id = `text_${i}`;
+                if (!newOrder.includes(id)) {
+                    newOrder.push(id);
+                    needsUpdate = true;
+                }
+            });
+
+            // Remove deleted text layers
+            const filteredOrder = newOrder.filter(id => {
+                if (id.startsWith('text_')) {
+                    const index = parseInt(id.replace('text_', ''));
+                    return index < textLayers.length;
+                }
+                return true;
+            });
+
+            if (filteredOrder.length !== newOrder.length) {
                 needsUpdate = true;
             }
+
+            return needsUpdate ? filteredOrder : currentOrder;
         });
-
-        // Remove deleted text layers
-        const filteredOrder = newOrder.filter(id => {
-            if (id.startsWith('text_')) {
-                const index = parseInt(id.replace('text_', ''));
-                return index < textLayers.length;
-            }
-            return true;
-        });
-
-        if (filteredOrder.length !== newOrder.length) {
-            needsUpdate = true;
-        }
-
-        if (needsUpdate) {
-            setLayersOrder(filteredOrder);
-        }
-    }, [overlaySrc, textLayers, layersOrder]);
+    }, [overlaySrc, textLayers]);
+    // Note: layersOrder is removed from dependencies to avoid cascading renders.
+    // The functional update setLayersOrder(current => ...) handles the update safely.
 
     // Save changes helper
     const saveChanges = useCallback((updatedProps) => {
